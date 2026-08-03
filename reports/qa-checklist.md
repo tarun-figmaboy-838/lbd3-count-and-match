@@ -54,7 +54,9 @@ every step. All figures below were observed, not assumed.
 | God Mode repeated open/close ×5 | panel/badge/root stay at 1 each; overrides reverted; game still playable |
 | God Mode built-in checks | 11 passed, 0 failed |
 | Frame rate, gameplay | 62 fps with 38 animated sparkles, drifting trays and pulsing buttons (was 21 fps when the ambient effect ran on a per-frame canvas) |
-| Frame rate, reward-key screen | 62 fps with the 3D key spin and halo (a conic-gradient starburst had dropped it to 6 fps; 0 effect canvases remain) |
+| Frame rate, reward-key screen | 61-62 fps with the 3D key spin, two orbiting spark rings and the halo (a conic-gradient starburst had dropped it to 6 fps; 0 effect canvases remain) |
+| Correct-match burst | expanding ring + radiating spark spray per matched tray, one-shot, restarts cleanly on a replay |
+| Card beat colour | the green success glow is dropped before the card appears — leaving it on tinted the card's golden glow and two adjacent cards merged into one flat green wash |
 | Correct-answer feedback | two non-overlapping beats: numbered items in place (0.75 s), then the reward card (1.15 s). Items are never hidden while the learner is reading them, and no text layer collides |
 | Correct badge scale | authored 0.611 (a tween to a flat 1 had made it 164% and washed the screen out) |
 

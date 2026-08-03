@@ -125,12 +125,56 @@ body.un-paused .un-spark::after { animation-play-state:paused; }
     drop-shadow(0 0 10px rgba(255,138,128,.95))
     drop-shadow(0 0 24px rgba(233,80,70,.5));
 }
-/* Matched pair: success reads as a green glow, NOT as growth -- the badge art
-   is already far wider than the tray, so scaling it up swamps the screen. */
+/* Matched pair: success reads as a green glow, NOT as growth -- the reward card
+   is already far wider than the tray, so scaling it up swamps the screen. The
+   glow is dropped again before the card appears, or it tints the card's own
+   golden glow and two cards merge into one flat green wash. */
 .un-correct {
   filter:
     drop-shadow(0 0 12px rgba(150,255,170,.95))
     drop-shadow(0 0 30px rgba(60,220,120,.6));
+}
+
+/* One-shot magic burst on a matched tray: two expanding rings plus a spray of
+   sparks radiating outward. The spray is a single element whose box-shadows are
+   the sparks, so the whole burst is two composited layers, not twenty. */
+.un-burst::before {
+  content:''; position:absolute; inset:14% 3%;
+  border-radius:50%; pointer-events:none; z-index:2;
+  border:5px solid rgba(198,255,206,.95);
+  animation:unBurstRing .9s cubic-bezier(.15,.75,.3,1) forwards;
+}
+.un-burst::after {
+  content:''; position:absolute; left:50%; top:52%;
+  width:9px; height:9px; margin:-4.5px 0 0 -4.5px;
+  border-radius:50%; pointer-events:none; z-index:2;
+  box-shadow:
+       0px -120px 0 0px rgba(255,255,255,.95),
+      98px  -74px 0 -1px rgba(206,255,214,.95),
+     130px    8px 0 -2px rgba(255,255,255,.9),
+      96px   82px 0 -1px rgba(226,255,190,.9),
+       8px  118px 0 -2px rgba(255,255,255,.85),
+     -92px   84px 0 -1px rgba(206,255,214,.9),
+    -132px    6px 0 -2px rgba(255,255,255,.9),
+     -98px  -76px 0 -1px rgba(238,255,200,.95),
+      42px -104px 0 -3px rgba(255,255,255,.8),
+     -46px -100px 0 -3px rgba(255,255,255,.8);
+  animation:unBurstSpray .95s cubic-bezier(.1,.8,.3,1) forwards;
+}
+@keyframes unBurstRing {
+  0%   { transform:scale(.45); opacity:0; }
+  16%  { opacity:1; }
+  100% { transform:scale(1.55); opacity:0; }
+}
+@keyframes unBurstSpray {
+  0%   { transform:scale(.2)  rotate(0deg);  opacity:0; }
+  18%  { opacity:1; }
+  100% { transform:scale(2.1) rotate(38deg); opacity:0; }
+}
+body.un-paused .un-burst::before,
+body.un-paused .un-burst::after { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) {
+  .un-burst::before, .un-burst::after { animation:none; opacity:0; }
 }
 
 /* The trays are floating islands in a sky, so they drift. This uses the
@@ -190,13 +234,64 @@ body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused;
   78%  { transform:rotateY(360deg); }
   100% { transform:rotateY(360deg); }
 }
+/* A ring of sparks orbiting the key. One element whose box-shadows are the
+   sparks, so the whole orbit is a single composited layer that just rotates --
+   it costs nothing while giving the key something alive around it. */
+[data-name="Key"]::before {
+  content:''; position:absolute; left:50%; top:50%;
+  width:14px; height:14px; margin:-7px 0 0 -7px;
+  border-radius:50%; z-index:-1; pointer-events:none;
+  box-shadow:
+       0px -400px 0  7px rgba(255,255,255,.98),
+     283px -283px 0  1px rgba(255,238,165,.95),
+     400px    0px 0  5px rgba(255,255,255,.92),
+     283px  283px 0  0px rgba(255,232,140,.95),
+       0px  400px 0  4px rgba(255,255,255,.95),
+    -283px  283px 0  1px rgba(255,238,165,.92),
+    -400px    0px 0  5px rgba(255,255,255,.9),
+    -283px -283px 0  0px rgba(255,232,140,.98),
+     153px -370px 0 -2px rgba(255,255,255,.85),
+    -153px -370px 0 -2px rgba(255,255,255,.85),
+     153px  370px 0 -2px rgba(255,250,205,.8),
+    -153px  370px 0 -2px rgba(255,250,205,.8);
+  animation:keyOrbit 14s linear infinite;
+}
+@keyframes keyOrbit {
+  0%   { rotate:0deg;   transform:scale(.88); opacity:.8; }
+  50%  {                transform:scale(1.1); opacity:1; }
+  100% { rotate:360deg; transform:scale(.88); opacity:.8; }
+}
+/* A tighter ring of sparks INSIDE the 3D layer, so it foreshortens with the key
+   and the two rings drift against each other -- that differential is what sells
+   the depth. Counter-rotating, and faster. */
+[data-name="Key"] > .un-img::after {
+  content:''; position:absolute; left:50%; top:50%;
+  width:10px; height:10px; margin:-5px 0 0 -5px;
+  border-radius:50%; pointer-events:none;
+  box-shadow:
+       0px -270px 0  2px rgba(255,255,255,.9),
+     191px -191px 0 -2px rgba(255,244,190,.85),
+     270px    0px 0  0px rgba(255,255,255,.85),
+     191px  191px 0 -2px rgba(255,238,165,.85),
+       0px  270px 0  1px rgba(255,255,255,.88),
+    -191px  191px 0 -2px rgba(255,244,190,.8),
+    -270px    0px 0  0px rgba(255,255,255,.82),
+    -191px -191px 0 -2px rgba(255,238,165,.9);
+  animation:keyOrbitInner 9s linear infinite reverse;
+}
+@keyframes keyOrbitInner {
+  0%   { rotate:0deg;   opacity:.55; }
+  50%  {                opacity:1; }
+  100% { rotate:360deg; opacity:.55; }
+}
+
 /* soft breathing halo behind it -- a radial gradient, which is cheap */
 [data-name="Key"]::after {
   content:''; position:absolute; inset:-30%; z-index:-1; pointer-events:none;
   border-radius:50%;
   background:radial-gradient(circle,
-    rgba(255,250,215,.72) 0%, rgba(255,224,130,.42) 26%,
-    rgba(255,205,85,.18)  48%, rgba(255,200,80,0)   72%);
+    rgba(255,252,228,.82) 0%, rgba(255,232,150,.52) 24%,
+    rgba(255,208,92,.24)  46%, rgba(255,200,80,0)   72%);
   animation:keyHalo 2.8s ease-in-out infinite;
   will-change:transform, opacity;
 }
@@ -206,10 +301,13 @@ body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused;
 }
 body.un-paused [data-name="Key"],
 body.un-paused [data-name="Key"] > .un-img,
+body.un-paused [data-name="Key"] > .un-img::after,
+body.un-paused [data-name="Key"]::before,
 body.un-paused [data-name="Key"]::after { animation-play-state:paused; }
 @media (prefers-reduced-motion: reduce) {
   [data-name="Key"], [data-name="Key"] > .un-img,
-  [data-name="Key"]::after { animation:none; }
+  [data-name="Key"] > .un-img::after,
+  [data-name="Key"]::before, [data-name="Key"]::after { animation:none; }
 }
 
 /* The action buttons breathe so a five-year-old knows where to tap next. The

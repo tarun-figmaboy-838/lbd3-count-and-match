@@ -128,6 +128,8 @@
       case 'complete':
         // clear the board the way the real flow does, so the jump lands on the
         // actual end state instead of the key floating over a live round
+        gm.handStart.cancel();      // else the idle hint still fires afterwards
+        gm.handPair.cancel();
         G.hideAllHands();
         E.setActive('931046663', false);      // TrayParent
         E.setActive('1574670127', false);     // Yes/No panel

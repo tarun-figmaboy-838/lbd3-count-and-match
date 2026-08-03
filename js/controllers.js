@@ -439,7 +439,7 @@ var Game = (function () {
       E.setScale(id, base * (1 + 0.06 * t));
     }, function () { E.setScale(id, base * 1.06); });
   };
-  /** Matched: swap the pick glow for a success glow. No size change. */
+  /** Matched: success glow plus a one-shot magic burst. No size change. */
   PlateItem.prototype.markCorrect = function () {
     var rec = E.get(this.host);
     if (!rec) return;
@@ -447,7 +447,20 @@ var Game = (function () {
     E.setScale(this.host, E.baseScale(this.host));
     rec.el.style.zIndex = '3';
     rec.el.classList.remove('un-selected', 'un-wrong');
-    rec.el.classList.add('un-correct');
+    // restart the burst from scratch even on a replay
+    rec.el.classList.remove('un-burst');
+    void rec.el.offsetWidth;
+    rec.el.classList.add('un-correct', 'un-burst');
+  };
+
+  /**
+   * Drop the green glow before the reward card appears. The card carries its own
+   * large golden glow, and a green drop-shadow on the tray tints it through --
+   * two adjacent cards then merged into one flat green-yellow wash.
+   */
+  PlateItem.prototype.clearCorrectGlow = function () {
+    var rec = E.get(this.host);
+    if (rec) rec.el.classList.remove('un-correct', 'un-burst');
   };
 
   PlateItem.prototype.settle = function () {
@@ -455,7 +468,7 @@ var Game = (function () {
     var rec = E.get(this.host);
     if (rec) {
       rec.el.style.zIndex = '';
-      rec.el.classList.remove('un-selected', 'un-wrong', 'un-correct');
+      rec.el.classList.remove('un-selected', 'un-wrong', 'un-correct', 'un-burst');
     }
     if (this.host) E.setScale(this.host, E.baseScale(this.host));
   };
@@ -692,6 +705,7 @@ var Game = (function () {
       [p1, p2].forEach(function (p, i) {
         if (p.Tray_number_obj) E.setActive(p.Tray_number_obj, false);
         if (p.objects) E.setActive(p.objects, false);
+        p.clearCorrectGlow();          // the card brings its own glow
         E.setActive(p.correctObject, true);
         // Scaled from the badge's OWN authored scale (0.611): tweening to a
         // flat 1 blew it up to 164% and washed the screen out in yellow.
