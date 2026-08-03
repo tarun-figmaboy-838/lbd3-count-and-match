@@ -1,0 +1,28 @@
+{
+ "referencedAssets": 41,
+ "filesOnDisk": 41,
+ "byKind": {
+  "img": 29,
+  "audio": 11,
+  "fonts": 1
+ },
+ "missing": [],
+ "zeroByte": [],
+ "unreferenced": [],
+ "runtimePathViolations": [],
+ "provenanceLabels": [
+  "Assets/Graphics/LBD1-20250501T050609Z-1-001/LBD1/animations/Image.controller",
+  "Assets/animation/number - Copy.controller",
+  "Assets/animation/number 1.controller",
+  "Assets/animation/number 2.controller",
+  "Assets/animation/number 3.controller",
+  "Assets/animation/number 4.controller",
+  "Assets/animation/number.controller"
+ ],
+ "provenanceLabelCount": 7,
+ "runtimePathsChecked": 104,
+ "slicedWithBorder": 0,
+ "slicedWithoutBorder": [],
+ "atlasCroppedSprites": 0,
+ "pass": true
+}

@@ -1,0 +1,16 @@
+# Normalise text in the repo, check out native. Keeps diffs clean whether the
+# game is cloned on Windows, macOS or a Linux CI box.
+* text=auto eol=lf
+
+# Binary assets: never touch, never try to diff.
+*.webp  binary
+*.png   binary
+*.gif   binary
+*.jpg   binary
+*.jpeg  binary
+*.mp3   binary
+*.ttf   binary
+
+# data.js is a single generated line of embedded scene JSON -- a textual diff of
+# it is noise, so keep it out of `git diff` unless explicitly asked.
+js/data.js -diff

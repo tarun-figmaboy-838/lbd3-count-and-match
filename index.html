@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Kabir and the Lost Princess</title>
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="viewport"><div id="stage"></div></div>
+<div id="rotate" aria-hidden="true"><div class="ph"></div><p>Turn your device sideways to play</p></div>
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/sfx.js"></script>
+<script src="js/controllers.js"></script>
+<script src="js/main.js"></script>
+<!-- QA / design-review layer. Opens only with Shift+G; never visible to
+     players. Delete these three lines (or set GOD_MODE_ENABLED = false) for a
+     production build -- nothing else changes. -->
+<script>window.GOD_MODE_ENABLED = true;</script>
+<link rel="stylesheet" href="god-mode/god-mode.css">
+<script src="god-mode/god-mode.js"></script>
+</body>
+</html>

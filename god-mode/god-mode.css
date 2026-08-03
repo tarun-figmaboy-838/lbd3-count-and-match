@@ -1,0 +1,149 @@
+/* ==========================================================================
+ * god-mode.css -- QA / design-review layer for "Matching Trays"
+ *
+ * Entirely self-contained and entirely removable: delete the god-mode <link>
+ * and <script> from index.html and the learner build is byte-identical.
+ * Every panel is position:fixed and sits OUTSIDE the scaled #stage, so it
+ * renders crisp at native size whatever the fit-to-viewport scale is.
+ * ======================================================================== */
+
+:root {
+  --godAccent:  #3DF5C4;
+  --godAccent2: #7C6BFF;
+  --godPink:    #FF6FD8;
+  --godWarn:    #FFCF5C;
+  --godInk:     #EAF6FF;
+  --godMuted:   rgba(190,215,230,.62);
+  --godGlass:   rgba(18,24,34,.88);
+  --godGlassHi: rgba(40,52,72,.6);
+  --godLine:    rgba(120,170,200,.18);
+}
+
+#godRoot { position:fixed; inset:0; pointer-events:none; z-index:99990; }
+#godRoot > * { pointer-events:auto; }
+/* Nothing God Mode owns may ever be visible to a player. The badge and the
+   guide overlay live on <body> (they must sit outside the scaled stage), so
+   they are hidden explicitly rather than relying on #godRoot alone. */
+body:not(.godMode) #godRoot,
+body:not(.godMode) #godBadge,
+body:not(.godMode) #godGuides { display:none !important; }
+
+/* ------------------------------------------------------------------ badge */
+#godBadge {
+  position:fixed; top:8px; left:50%; transform:translateX(-50%);
+  z-index:100002; padding:3px 12px; border-radius:999px;
+  font:700 11px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing:.14em; text-transform:uppercase; color:#06121a;
+  background:linear-gradient(90deg, var(--godAccent), var(--godWarn));
+  box-shadow:0 2px 14px rgba(61,245,196,.45); animation:godPulse 2.2s ease-in-out infinite;
+}
+@keyframes godPulse { 0%,100%{opacity:.85} 50%{opacity:1} }
+
+/* ------------------------------------------------------------------ panel */
+#godPanel {
+  position:fixed; top:44px; left:14px; width:346px; max-height:calc(100vh - 60px);
+  display:flex; flex-direction:column; z-index:100001;
+  background:var(--godGlass); backdrop-filter:blur(14px) saturate(1.3);
+  border:1px solid var(--godLine); border-radius:12px;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+  color:var(--godInk);
+  font:12px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+#godPanel * { box-sizing:border-box; }
+#godHead {
+  display:flex; align-items:center; gap:8px; padding:8px 10px; cursor:grab;
+  background:linear-gradient(90deg, rgba(124,107,255,.32), rgba(61,245,196,.14));
+  border-bottom:1px solid var(--godLine); border-radius:12px 12px 0 0;
+  user-select:none; flex:0 0 auto;
+}
+#godHead.godDragging { cursor:grabbing; }
+#godHead b { font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+#godHead .godSpacer { flex:1; }
+#godHead button {
+  width:22px; height:22px; padding:0; line-height:1;
+  background:rgba(255,255,255,.08); color:var(--godInk);
+  border:1px solid var(--godLine); border-radius:6px; cursor:pointer;
+}
+#godBody { overflow:auto; padding:4px 10px 12px; flex:1 1 auto; }
+#godPanel.godMin #godBody { display:none; }
+#godBody::-webkit-scrollbar { width:8px; }
+#godBody::-webkit-scrollbar-thumb { background:rgba(124,170,200,.3); border-radius:4px; }
+
+.godSec { border-top:1px solid var(--godLine); padding:8px 0 4px; }
+.godSec:first-child { border-top:0; }
+.godSec > h4 {
+  margin:0 0 6px; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--godAccent); font-weight:700;
+}
+.godRow { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px; }
+.godRow.god2 > * { flex:1 1 calc(50% - 4px); }
+.godRow.god3 > * { flex:1 1 calc(33.333% - 4px); }
+
+#godPanel button.godBtn {
+  padding:5px 7px; font:600 11px/1.2 inherit; color:var(--godInk);
+  background:var(--godGlassHi); border:1px solid var(--godLine);
+  border-radius:6px; cursor:pointer; text-align:center;
+}
+#godPanel button.godBtn:hover { background:rgba(61,245,196,.2); border-color:var(--godAccent); }
+#godPanel button.godBtn.godOn { background:rgba(61,245,196,.32); border-color:var(--godAccent); color:#fff; }
+#godPanel button.godBtn.godDanger:hover { background:rgba(255,111,216,.24); border-color:var(--godPink); }
+
+#godPanel label.godChk {
+  display:flex; align-items:center; gap:6px; padding:2px 0;
+  font-size:11px; color:var(--godInk); cursor:pointer; flex:1 1 calc(50% - 4px);
+}
+#godPanel input[type=text], #godPanel input[type=number], #godPanel select {
+  width:100%; padding:4px 6px; font:11px/1.3 inherit; color:var(--godInk);
+  background:rgba(0,0,0,.32); border:1px solid var(--godLine); border-radius:5px;
+}
+#godPanel input:focus, #godPanel select:focus { outline:1px solid var(--godAccent); }
+
+.godKV { display:grid; grid-template-columns:auto 1fr; gap:1px 8px; font-size:11px; }
+.godKV dt { color:var(--godMuted); }
+.godKV dd { margin:0; color:var(--godInk); overflow-wrap:anywhere; }
+.godOut {
+  margin-top:4px; padding:6px; max-height:190px; overflow:auto;
+  background:rgba(0,0,0,.38); border:1px solid var(--godLine); border-radius:6px;
+  font-size:10.5px; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--godMuted);
+}
+.godOut .ok   { color:var(--godAccent); }
+.godOut .bad  { color:var(--godPink); }
+.godOut .warn { color:var(--godWarn); }
+.godHint { font-size:10px; color:var(--godMuted); margin:2px 0 0; }
+
+/* -------------------------------------------------------- inspector frame */
+#godSel {
+  position:fixed; z-index:100000; pointer-events:none; display:none;
+  border:1px solid var(--godAccent); box-shadow:0 0 0 1px rgba(0,0,0,.5) inset;
+}
+#godSel.godLive { display:block; }
+#godSel .godTag {
+  position:absolute; left:0; top:-19px; padding:1px 6px; white-space:nowrap;
+  font:600 10px/1.5 ui-monospace, Menlo, Consolas, monospace;
+  background:var(--godAccent); color:#04121a; border-radius:3px 3px 0 0;
+}
+#godSel .godH {
+  position:absolute; width:9px; height:9px; background:#04121a;
+  border:1.5px solid var(--godAccent); border-radius:2px; pointer-events:auto;
+}
+body.godPick #stage { cursor:crosshair; }
+
+/* ------------------------------------------------------------- overlays */
+#godGuides { position:fixed; inset:0; z-index:99991; pointer-events:none; display:none; }
+body.godGrid #godGuides, body.godCenter #godGuides, body.godSafe #godGuides { display:block; }
+
+body.godBounds .un:not(.un-off) { outline:1px solid rgba(61,245,196,.5); }
+body.godBounds .un-tmp:not(.un-off) { outline:1px solid rgba(255,111,216,.6); }
+body.godHit .un-btn:not(.un-off):not(.un-dis) {
+  outline:2px dashed var(--godWarn) !important; background:rgba(255,207,92,.14);
+}
+body.godHit .un-btn.un-dis:not(.un-off) { outline:2px dotted rgba(255,111,216,.7) !important; }
+/* the tray grid is this game's "drop zone" equivalent */
+body.godZones [data-name="TrayParent"], body.godZones [data-name="bottom"],
+body.godZones [data-name="Bottons"] {
+  outline:2px solid rgba(124,107,255,.9) !important;
+  background:rgba(124,107,255,.12);
+}
+body.godPauseAnim .un-spark { animation-play-state:paused !important; }
+
+.godMark { outline:2px solid var(--godPink) !important; }

@@ -1,0 +1,62 @@
+# ---------------------------------------------------------------- OS cruft
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# ------------------------------------------------------------------ editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+
+# -------------------------------------------------------------------- tools
+# The game itself has no build step and no dependencies. These only appear if
+# someone adds tooling (a bundler, a test runner, a local server).
+node_modules/
+.npm/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ----------------------------------------------------------------- test runs
+# Playwright / QA scratch output. The committed reports/ folder is the curated
+# result; these are the raw artefacts from individual runs.
+test-results/
+playwright-report/
+.playwright/
+*.out
+*.log
+
+# ------------------------------------------------------------------- secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------------------------------------------------------------- deploy dirs
+.vercel
+.netlify
+.cache/
+dist/
+build/
+
+# ------------------------------------------------------------------ archives
+# Source art / audio masters are not part of the runtime build.
+*.zip
+*.rar
+*.7z
+*.psd
+*.ai
+*.aseprite

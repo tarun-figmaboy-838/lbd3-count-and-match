@@ -1,0 +1,113 @@
+@font-face{font-family:"LilitaOne-Regular";src:url("../assets/fonts/LilitaOne-Regular.ttf") format("truetype");font-display:block;}
+
+/* uGUI runtime stylesheet */
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:100%; height:100%; overflow:hidden; background:#000;
+  -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation; overscroll-behavior:none;
+}
+/* The canvas is locked to 1920×1080 and centred by the engine, so the viewport
+   only ever shows letterbox / pillarbox bars around it. */
+#viewport { position:fixed; inset:0; overflow:hidden; }
+#stage { position:absolute; left:0; top:0; transform-origin:0 0; }
+
+/* ---------------------------------------------------------- rotate prompt
+   A 16:9 canvas in a tall phone viewport leaves the game a few centimetres
+   high, which is unplayable for small fingers. Rather than reflow a fixed
+   composition, ask for landscape -- the same thing the rest of this series
+   does. Shown only on short viewports, so desktop windows and tablets in
+   portrait (which still have room) are unaffected. */
+#rotate {
+  position:fixed; inset:0; z-index:50; display:none;
+  flex-direction:column; align-items:center; justify-content:center; gap:22px;
+  padding:24px; text-align:center;
+  background:#1b0e2b; color:#ffe9b8;
+  font-family:"LilitaOne-Regular", system-ui, sans-serif;
+}
+#rotate p { font-size:clamp(17px, 5.4vw, 27px); line-height:1.35; max-width:16em; }
+#rotate .ph {
+  width:clamp(62px, 17vw, 96px); height:clamp(104px, 28vw, 160px);
+  border:4px solid #ffd166; border-radius:12px;
+  animation:rotHint 2.4s ease-in-out infinite;
+}
+@keyframes rotHint {
+  0%, 22%   { transform:rotate(0deg); }
+  52%, 78%  { transform:rotate(-90deg); }
+  100%      { transform:rotate(-90deg); }
+}
+@media (orientation:portrait) and (max-height:560px) { #rotate { display:flex; } }
+@media (orientation:portrait) and (max-width:560px) { #rotate { display:flex; } }
+@media (prefers-reduced-motion:reduce) { #rotate .ph { animation:none; transform:rotate(-90deg); } }
+
+/* every Unity GameObject becomes one absolutely positioned div */
+.un { position:absolute; left:0; top:0; }
+.un-off { display:none !important; }
+/* No z-index: each particle canvas is spliced in next to the layer that owns
+   it, so normal DOM order keeps background sparkles behind the trays and the
+   confetti burst on top. */
+.un-fx { position:absolute; left:0; top:0; pointer-events:none; }
+
+/* Ambient sparkle field: spread across the backdrop, animated by the
+   compositor so it costs nothing per frame. Small, soft and slow on purpose --
+   background twinkle, never something that competes with the trays. */
+.un-spark-field { position:absolute; pointer-events:none; overflow:visible; }
+.un-spark {
+  position:absolute; border-radius:50%; pointer-events:none;
+  animation-name:unTwinkle; animation-iteration-count:infinite;
+  animation-timing-function:ease-in-out;
+}
+@keyframes unTwinkle {
+  0%   { opacity:0;               transform:scale(.45); }
+  45%  { opacity:var(--pk, 1);    transform:scale(1); }
+  100% { opacity:0;               transform:scale(.5) translateY(-14px); }
+}
+/* God Mode / debug pause must hold CSS effects too, not just the tweens. */
+body.un-paused .un-spark { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) {
+  .un-spark { animation-duration:0s; opacity:var(--pk, 1) !important; }
+}
+
+.un-tmp { overflow:visible; }
+.un-tmp-inner { display:block; width:100%; }
+
+.un-btn { -webkit-user-select:none; user-select:none; touch-action:none; }
+.un-btn.un-dis { pointer-events:none; }
+
+/* Press / state feedback. Uses filter, never transform: every .un carries an
+   inline transform from the layout pass, so a CSS transform here is discarded. */
+.un-btn { transition:filter .12s ease-out; }
+.un-press { filter:brightness(1.14) saturate(1.06); }
+
+/* Selected tray. The shipped "selected" sprite is only a paler plate, which
+   reads as disabled rather than chosen, so the pick gets a real warm glow.
+   Declared after .un-press so a chosen tray keeps glowing. */
+.un-selected {
+  filter:
+    drop-shadow(0 0 10px rgba(255,222,120,.98))
+    drop-shadow(0 0 26px rgba(255,193,64,.62))
+    brightness(1.04);
+}
+/* Wrong pair: same idea, warm red, never alarming. */
+.un-wrong {
+  filter:
+    drop-shadow(0 0 10px rgba(255,138,128,.95))
+    drop-shadow(0 0 24px rgba(233,80,70,.5));
+}
+/* Matched pair: success reads as a green glow, NOT as growth -- the badge art
+   is already far wider than the tray, so scaling it up swamps the screen. */
+.un-correct {
+  filter:
+    drop-shadow(0 0 12px rgba(150,255,170,.95))
+    drop-shadow(0 0 30px rgba(60,220,120,.6));
+}
+
+/* Debug: God Mode can freeze interaction without touching game state. */
+body.un-input-locked .un-btn { pointer-events:none; }
+
+/* Unity Image draws into its own layer so a tint never bleeds onto children */
+.un-img {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  pointer-events: none; background-repeat: no-repeat; background-size: 100% 100%;
+}
