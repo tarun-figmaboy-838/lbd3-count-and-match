@@ -103,13 +103,41 @@ var Sfx = (function () {
     deselect: function () {
       tone({ type: 'triangle', from: 620, to: 420, dur: 0.13, peak: 0.34 });
     },
-    // matched pair: a rising three-note arpeggio (major triad) = "well done"
+    // matched pair: a rising arpeggio that lands on the octave, with a bell
+    // shimmer on top -- the "well done" moment, so it is the richest cue here
     correct: function () {
-      [0, 0.085, 0.17].forEach(function (d, i) {
-        tone({ type: 'triangle', from: [660, 830, 990][i], dur: 0.3, peak: 0.4, delay: d });
-        tone({ type: 'sine', from: [1320, 1660, 1980][i], dur: 0.24, peak: 0.11, delay: d });
+      [660, 830, 990, 1320].forEach(function (f, i) {
+        tone({ type: 'triangle', from: f, dur: 0.34, peak: 0.4, delay: i * 0.075 });
+        tone({ type: 'sine', from: f * 2, dur: 0.28, peak: 0.12, delay: i * 0.075 });
       });
-      noise({ from: 5200, to: 8000, dur: 0.4, peak: 0.07, delay: 0.16, q: 0.7 });
+      // bell tail: two detuned partials ringing on after the arpeggio
+      tone({ type: 'sine', from: 1980, dur: 0.85, peak: 0.15, delay: 0.28, attack: 0.02 });
+      tone({ type: 'sine', from: 2640, dur: 0.7, peak: 0.09, delay: 0.3, detune: 8, attack: 0.03 });
+      noise({ from: 5200, to: 9000, dur: 0.5, peak: 0.08, delay: 0.18, q: 0.7 });
+    },
+    // glittering shimmer that rides along with a spark burst
+    sparkle: function () {
+      for (var i = 0; i < 7; i++) {
+        tone({
+          type: 'sine',
+          from: 1500 + Math.random() * 2400,
+          dur: 0.16 + Math.random() * 0.16,
+          peak: 0.11,
+          delay: i * 0.045 + Math.random() * 0.03,
+          attack: 0.004
+        });
+      }
+      noise({ from: 6000, to: 11000, dur: 0.42, peak: 0.05, q: 0.8 });
+    },
+    // "let's have another go" -- encouraging, never a failure sound
+    retry: function () {
+      tone({ type: 'triangle', from: 440, to: 590, dur: 0.16, peak: 0.34 });
+      tone({ type: 'triangle', from: 590, to: 700, dur: 0.2, peak: 0.3, delay: 0.13 });
+    },
+    // moving on
+    next: function () {
+      tone({ type: 'triangle', from: 700, to: 940, dur: 0.15, peak: 0.34 });
+      tone({ type: 'sine', from: 1400, to: 1880, dur: 0.12, peak: 0.12, delay: 0.02 });
     },
     // wrong pair: warm and low, never harsh -- this is a five-year-old's game
     wrong: function () {
@@ -127,12 +155,25 @@ var Sfx = (function () {
       });
       noise({ from: 4000, to: 9000, dur: 0.7, peak: 0.08, delay: 0.1, q: 0.6 });
     },
-    // end-of-game celebration
+    // end-of-game celebration: a full fanfare, the biggest cue in the game
     celebrate: function () {
-      [523, 659, 784, 1047].forEach(function (f, i) {
-        tone({ type: 'triangle', from: f, to: f * 1.01, dur: 0.5, peak: 0.32, delay: i * 0.1 });
+      // rising fanfare
+      [523, 659, 784, 1047, 1319].forEach(function (f, i) {
+        tone({ type: 'triangle', from: f, dur: 0.55, peak: 0.34, delay: i * 0.095 });
+        tone({ type: 'sine', from: f * 2, dur: 0.4, peak: 0.1, delay: i * 0.095 });
       });
-      noise({ from: 2000, to: 7000, dur: 0.55, peak: 0.1, delay: 0.05, q: 0.5 });
+      // held chord underneath
+      [523, 784, 1047].forEach(function (f) {
+        tone({ type: 'sine', from: f, dur: 1.5, peak: 0.13, delay: 0.48, attack: 0.06 });
+      });
+      // confetti patter + a bright sweep
+      for (var i = 0; i < 9; i++) {
+        noise({
+          filter: 'bandpass', from: 3000 + Math.random() * 5000,
+          dur: 0.1, peak: 0.06, delay: 0.5 + i * 0.075, q: 2
+        });
+      }
+      noise({ from: 1800, to: 9000, dur: 0.7, peak: 0.1, delay: 0.04, q: 0.5 });
     },
     // screen change
     whoosh: function () {

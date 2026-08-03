@@ -55,8 +55,11 @@ every step. All figures below were observed, not assumed.
 | God Mode built-in checks | 11 passed, 0 failed |
 | Frame rate, gameplay | 62 fps with 38 animated sparkles, drifting trays and pulsing buttons (was 21 fps when the ambient effect ran on a per-frame canvas) |
 | Frame rate, reward-key screen | 61-62 fps with the 3D key spin, two orbiting spark rings and the halo (a conic-gradient starburst had dropped it to 6 fps; 0 effect canvases remain) |
-| Correct-match burst | expanding ring + radiating spark spray per matched tray, one-shot, restarts cleanly on a replay |
-| Card beat colour | the green success glow is dropped before the card appears — leaving it on tinted the card's golden glow and two adjacent cards merged into one flat green wash |
+| Correct-match burst | star sparks flying out from each matched tray in two waves, each with its own direction, size, tint, spin and delay; self-removing, verified back to 0 nodes |
+| Backdrop coverage | the sparkle field spans the full canvas (measured field == stage exactly), 54 sparkles |
+| SFX cue count | 12: select, deselect, correct, sparkle, retry, next, wrong, pop, reward, celebrate, whoosh, button |
+| Correct-answer feedback | the reward card is **not** used. Its art is a full tray replacement (glow + own plate + baked text), so it can only be shown by removing the items — unacceptable in a counting game. The match is confirmed on the tray: green glow, star burst, and the tray's own number labels counting the items 1..N, which stay on screen throughout |
+| Frame rate during the burst | 35 fps in software rasterisation (was 19 while the burst animated *inside* the tray's drop-shadow filter, which forced a subtree re-filter every frame). Idle returns to 62 |
 | Correct-answer feedback | two non-overlapping beats: numbered items in place (0.75 s), then the reward card (1.15 s). Items are never hidden while the learner is reading them, and no text layer collides |
 | Correct badge scale | authored 0.611 (a tween to a flat 1 had made it 164% and washed the screen out) |
 

@@ -28,17 +28,24 @@ to **replace** the tray, so it cannot coexist with the tray's contents:
 
 - drawn over the items, it buries the very things the learner just counted
 - drawn under them, three layers of text collide and none of it is readable
+- shown *after* them, the items still have to vanish to make room
 
-In a counting game neither is acceptable, so the reward now plays as two
-non-overlapping beats:
+All three break the one rule that matters in a counting game: the learner must be
+able to see what they counted. **So the card is not used.** The match is confirmed
+on the tray itself:
 
-1. **0.75 s** — the matched trays glow green and the tray's own number labels
-   count the items that are still on screen, confirming the answer in place.
-2. **1.15 s** — items and numbers step aside and the reward card pops in at its
-   authored scale.
+- the tray glows green and gets a burst of star sparks
+- the tray's own number labels count the items off 1..N, and the items stay
+- the count is spoken ("Great counting!")
 
-The card's own scale (0.611) is respected. An earlier build tweened it to a flat
-`1`, rendering it 164% oversized and washing the screen out in yellow.
+Nothing is lost but the card artwork, and the number labels arguably teach the
+count better than a label reading "4 Gems" ever did.
+
+Two earlier attempts are recorded here because both look plausible and both are
+wrong: tweening the card to a flat scale of `1` ignores its authored 0.611 and
+renders it 164% oversized, washing the screen yellow; and leaving the tray's
+green glow on underneath tints the card's golden glow so two adjacent cards merge
+into one flat green wash.
 
 ## Reproduced original quirks
 

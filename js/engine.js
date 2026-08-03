@@ -1147,23 +1147,22 @@ var Engine = (function () {
   function ensureAmbientField(rec) {
     if (rec.spark) return;
     var ps = rec.particles, sc = particleScale(rec);
-    var spreadX, spreadY;
-    if (ps.shapeType === 5 && ps.shapeScale) {
-      spreadX = (ps.shapeScale[0] || 1) * sc;
-      spreadY = (ps.shapeScale[2] || ps.shapeScale[1] || 1) * sc;
-    } else {
-      spreadX = spreadY = (ps.shapeRadius || 0.5) * 2 * sc;
-    }
+    // A backdrop field covers the WHOLE canvas. The authored emitter box is
+    // 1799x906 offset below centre, which left the top of the sky and both
+    // edges bare -- the magic is meant to fill the scene, not sit in a patch.
+    var spreadX = stageW, spreadY = stageH;
+    var originX = 0, originY = 0;
     var dia = Math.max(3, (ps.startSize || 1) * sc * 0.5);
-    var n = Math.max(4, Math.min(ps.maxParticles || 24, 38));
+    // area-scaled count, so full coverage does not mean a thinner sprinkle
+    var n = Math.max(10, Math.min(ps.maxParticles || 24, 54));
     var col = ps.startColor || [1, 1, 1, 1];
     var life = Math.max(1.2, ps.startLifetime || 4);
 
     var box = el('div', 'un-spark-field');
     box.style.width = spreadX + 'px';
     box.style.height = spreadY + 'px';
-    box.style.left = (rec.left - spreadX / 2) + 'px';
-    box.style.top = (rec.top - spreadY / 2) + 'px';
+    box.style.left = originX + 'px';
+    box.style.top = originY + 'px';
     var base = css([col[0], col[1], col[2]]);
     var peak = clamp01(col.length > 3 ? col[3] : 1);
     // A few tints around the authored colour: a single flat hue reads as dust,

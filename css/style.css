@@ -135,69 +135,41 @@ body.un-paused .un-spark::after { animation-play-state:paused; }
     drop-shadow(0 0 30px rgba(60,220,120,.6));
 }
 
-/* One-shot magic burst on a matched tray: two expanding rings plus a spray of
-   sparks radiating outward. The spray is a single element whose box-shadows are
-   the sparks, so the whole burst is two composited layers, not twenty. */
-.un-burst::before {
-  content:''; position:absolute; inset:14% 3%;
-  border-radius:50%; pointer-events:none; z-index:2;
-  border:5px solid rgba(198,255,206,.95);
-  animation:unBurstRing .9s cubic-bezier(.15,.75,.3,1) forwards;
+/* Star-spark burst, spawned by the game over a tray and removed when it ends.
+   Real elements rather than box-shadows, because each spark needs its own
+   direction, size, tint, spin and delay -- that variation is the difference
+   between a magic burst and a ring of identical dots. */
+/* Positioned in the parent's coordinate space by the game (left/top set
+   inline), so it sits beside the tray rather than inside its glow filter. */
+.un-burstfx { position:absolute; width:0; height:0; pointer-events:none; z-index:6; }
+/* The star is a mask over a solid colour: the mask never changes, only the
+   transform, so each spark rasterises once. Deliberately FEW and LARGE sparks --
+   36 small ones cost 62fps -> 17 here (every animated element is its own
+   composited layer), and a dozen big stars reads better anyway. */
+.un-burstfx i {
+  position:absolute; left:0; top:0; display:block; opacity:0;
+  background:currentColor;
+  -webkit-mask-image:var(--star); mask-image:var(--star);
+  -webkit-mask-size:100% 100%;    mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;  mask-repeat:no-repeat;
+  animation-name:unBurstFly;
+  animation-timing-function:cubic-bezier(.12,.72,.28,1);
+  animation-fill-mode:forwards;
 }
-.un-burst::after {
-  content:''; position:absolute; left:50%; top:52%;
-  width:9px; height:9px; margin:-4.5px 0 0 -4.5px;
-  border-radius:50%; pointer-events:none; z-index:2;
-  box-shadow:
-       0px -120px 0 0px rgba(255,255,255,.95),
-      98px  -74px 0 -1px rgba(206,255,214,.95),
-     130px    8px 0 -2px rgba(255,255,255,.9),
-      96px   82px 0 -1px rgba(226,255,190,.9),
-       8px  118px 0 -2px rgba(255,255,255,.85),
-     -92px   84px 0 -1px rgba(206,255,214,.9),
-    -132px    6px 0 -2px rgba(255,255,255,.9),
-     -98px  -76px 0 -1px rgba(238,255,200,.95),
-      42px -104px 0 -3px rgba(255,255,255,.8),
-     -46px -100px 0 -3px rgba(255,255,255,.8);
-  animation:unBurstSpray .95s cubic-bezier(.1,.8,.3,1) forwards;
+.un-burstfx {
+  --star:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>\
+<polygon fill='%23fff' points='50,0 58,42 100,50 58,58 50,100 42,58 0,50 42,42'/></svg>");
 }
-@keyframes unBurstRing {
-  0%   { transform:scale(.45); opacity:0; }
-  16%  { opacity:1; }
-  100% { transform:scale(1.55); opacity:0; }
+@keyframes unBurstFly {
+  0%   { transform:translate(-50%, -50%) scale(.15) rotate(0deg); opacity:0; }
+  15%  { opacity:1; }
+  60%  { opacity:1; }
+  100% { transform:translate(calc(-50% + var(--bx, 0px)), calc(-50% + var(--by, 0px)))
+                   scale(.9) rotate(190deg); opacity:0; }
 }
-@keyframes unBurstSpray {
-  0%   { transform:scale(.2)  rotate(0deg);  opacity:0; }
-  18%  { opacity:1; }
-  100% { transform:scale(2.1) rotate(38deg); opacity:0; }
-}
-body.un-paused .un-burst::before,
-body.un-paused .un-burst::after { animation-play-state:paused; }
-@media (prefers-reduced-motion: reduce) {
-  .un-burst::before, .un-burst::after { animation:none; opacity:0; }
-}
-
-/* The trays are floating islands in a sky, so they drift. This uses the
-   standalone `translate` property, NOT `transform`: the layout pass writes an
-   inline transform on every .un, which would win over a CSS transform here.
-   Staggered per tray so the row never moves as one slab. Browsers without
-   `translate` simply render them static -- it is decoration only. */
-[data-name="TrayParent"] > .un-btn {
-  animation:unFloat 4.6s ease-in-out infinite;
-}
-[data-name="TrayParent"] > .un-btn:nth-child(2) { animation-delay:-.7s;  animation-duration:5.1s; }
-[data-name="TrayParent"] > .un-btn:nth-child(3) { animation-delay:-1.5s; animation-duration:4.3s; }
-[data-name="TrayParent"] > .un-btn:nth-child(4) { animation-delay:-2.2s; animation-duration:5.4s; }
-[data-name="TrayParent"] > .un-btn:nth-child(5) { animation-delay:-3.0s; animation-duration:4.8s; }
-[data-name="TrayParent"] > .un-btn:nth-child(6) { animation-delay:-3.8s; animation-duration:5.6s; }
-@keyframes unFloat {
-  0%, 100% { translate:0 -5px; }
-  50%      { translate:0  5px; }
-}
-body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused; }
-@media (prefers-reduced-motion: reduce) {
-  [data-name="TrayParent"] > .un-btn { animation:none; }
-}
+body.un-paused .un-burstfx i { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) { .un-burstfx { display:none; } }
 
 /* ------------------------------------------------------------- reward key
    The final key is the payoff of the whole game, so it earns the biggest

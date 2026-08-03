@@ -124,6 +124,48 @@ var Game = (function () {
   }
   function stopVO() { E.stopChannel(VO_CHANNEL); }
 
+  // ----------------------------------------------------------- spark bursts
+  // Spawned over a node, self-removing. Each spark gets its own direction,
+  // distance, size, tint, spin and delay: that variation is what reads as magic
+  // rather than as a ring of identical dots. The container is a child of the
+  // node, so a glow filter on the node tints the sparks to match.
+  var BURST_TINTS = ['#ffffff', '#fff6c8', '#d8ffe2', '#ffe8a8', '#cfe9ff', '#ffd9f2'];
+  function burstAt(hostId, opts) {
+    var rec = E.get(hostId);
+    if (!rec) return;
+    opts = opts || {};
+    var n = opts.count || 16;
+    var reach = opts.reach || 210;
+    var box = document.createElement('div');
+    box.className = 'un-burstfx';
+    // Mounted on the host's PARENT, not the host. A matched tray carries a
+    // drop-shadow glow, and anything animating inside a filtered element forces
+    // the whole subtree to be re-filtered every frame -- that alone cost
+    // 62fps -> 17, regardless of how few sparks were in flight.
+    var mount = rec.parent ? rec.parent.el : null;
+    box.style.left = (rec.left + rec.w / 2) + 'px';
+    box.style.top = (rec.top + rec.h * 0.52) + 'px';
+    for (var i = 0; i < n; i++) {
+      var s = document.createElement('i');
+      var ang = (i / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.55;
+      var dist = reach * (0.55 + Math.random() * 0.65);
+      var size = 22 + Math.random() * 34;
+      s.style.width = s.style.height = size.toFixed(0) + 'px';
+      // squashed vertically: the trays are wide ellipses, so a circular spray
+      // reads as wrong perspective
+      s.style.setProperty('--bx', (Math.cos(ang) * dist).toFixed(1) + 'px');
+      s.style.setProperty('--by', (Math.sin(ang) * dist * 0.66).toFixed(1) + 'px');
+      s.style.color = BURST_TINTS[(Math.random() * BURST_TINTS.length) | 0];
+      s.style.animationDelay = (Math.random() * 0.2).toFixed(2) + 's';
+      s.style.animationDuration = (0.68 + Math.random() * 0.5).toFixed(2) + 's';
+      box.appendChild(s);
+    }
+    (mount || rec.el).appendChild(box);
+    setTimeout(function () {
+      if (box.parentNode) box.parentNode.removeChild(box);
+    }, 1600);
+  }
+
   // ------------------------------------------------------- hint-hand arbiter
   // Six per-tray hands plus one shared hand all point at trays. The tutorial
   // timeline and GameManager's idle timer could raise two of them at once, so
@@ -295,7 +337,10 @@ var Game = (function () {
     this.showNextMessage();
   };
 
-  TutorialDialogue.prototype.handleNextClick = function () { this.advance(); };
+  TutorialDialogue.prototype.handleNextClick = function () {
+    S.play('next');
+    this.advance();
+  };
 
   TutorialDialogue.prototype.onTrayButtonClicked = function (btnHostId) {
     if (this.tray_btn.indexOf(String(btnHostId)) < 0) return;
@@ -447,10 +492,7 @@ var Game = (function () {
     E.setScale(this.host, E.baseScale(this.host));
     rec.el.style.zIndex = '3';
     rec.el.classList.remove('un-selected', 'un-wrong');
-    // restart the burst from scratch even on a replay
-    rec.el.classList.remove('un-burst');
-    void rec.el.offsetWidth;
-    rec.el.classList.add('un-correct', 'un-burst');
+    rec.el.classList.add('un-correct');
   };
 
   /**
@@ -460,7 +502,7 @@ var Game = (function () {
    */
   PlateItem.prototype.clearCorrectGlow = function () {
     var rec = E.get(this.host);
-    if (rec) rec.el.classList.remove('un-correct', 'un-burst');
+    if (rec) rec.el.classList.remove('un-correct');
   };
 
   PlateItem.prototype.settle = function () {
@@ -468,7 +510,7 @@ var Game = (function () {
     var rec = E.get(this.host);
     if (rec) {
       rec.el.style.zIndex = '';
-      rec.el.classList.remove('un-selected', 'un-wrong', 'un-correct', 'un-burst');
+      rec.el.classList.remove('un-selected', 'un-wrong', 'un-correct');
     }
     if (this.host) E.setScale(this.host, E.baseScale(this.host));
   };
@@ -683,45 +725,47 @@ var Game = (function () {
     var g = this.correct;
     S.play('correct');
     /*
-     * Two beats, never overlapping.
+     * The items NEVER leave the screen.
      *
-     * The reward art is a glow PLUS its own plate PLUS baked-in text
-     * ("That's correct! / 4 Gems"), so it is built to replace the tray. Drawing
-     * it over the items buried them; drawing the items over it collided three
-     * layers of text. Neither is acceptable in a counting game, where the
-     * learner has to see what they counted.
+     * `correctObject` (Frame_19 / Frame_236 / ...) is not a badge -- each is a
+     * full replacement for the tray: a large glow, its own plate, and baked-in
+     * text ("That's correct! / 4 Gems"). It therefore cannot coexist with the
+     * tray's contents in any arrangement:
      *
-     *   beat 1  the tray glows green and the number labels count the items
-     *           the learner just tapped  -- the answer is confirmed in place
-     *   beat 2  items and numbers step aside for the reward card
+     *   - drawn over the items it buries the things just counted
+     *   - drawn under them, its plate and text collide with the items
+     *   - shown after them, the items have to vanish to make room
+     *
+     * All three fail the one rule that matters in a counting game: the learner
+     * must be able to see what they counted. So the card is not used, and the
+     * match is confirmed on the tray itself -- green glow, a burst, and the
+     * tray's own number labels counting the items off 1..N. The count is also
+     * spoken ("Great counting!"), so nothing is lost but the card art.
      */
     g.run(function* () {
       [p1, p2].forEach(function (p) {
         p.markCorrect();
         if (p.Tray_number_obj) E.setActive(p.Tray_number_obj, true);
+        burstAt(p.host, { count: 9, reach: 240 });
+        // a small settle-pop on the tray, from its own authored scale
+        var id = p.host, base = E.baseScale(id);
+        E.setScale(id, base * 0.94);
+        g.tween(0.36, 'outBack', function (t) {
+          E.setScale(id, base * (0.94 + 0.06 * t));
+        }, function () { E.setScale(id, base); });
       });
-      yield 0.75;
+      S.play('pop', null, 20);
+      S.play('sparkle', null, 20);
 
-      [p1, p2].forEach(function (p, i) {
-        if (p.Tray_number_obj) E.setActive(p.Tray_number_obj, false);
-        if (p.objects) E.setActive(p.objects, false);
-        p.clearCorrectGlow();          // the card brings its own glow
-        E.setActive(p.correctObject, true);
-        // Scaled from the badge's OWN authored scale (0.611): tweening to a
-        // flat 1 blew it up to 164% and washed the screen out in yellow.
-        var base = E.baseScale(p.correctObject);
-        E.setScale(p.correctObject, base * 0.55);
-        g.tween(0.3, 'outBack', function (t) {
-          E.setScale(p.correctObject, base * (0.55 + 0.45 * t));
-        }, function () { E.setScale(p.correctObject, base); });
-        if (i === 0) S.play('pop', null, 20);
-      });
-      yield 1.15;
+      // a second, softer wave so the beat shimmers for its whole length
+      yield 0.6;
+      [p1, p2].forEach(function (p) { burstAt(p.host, { count: 5, reach: 180 }); });
+      S.play('sparkle', null, 20);
+      yield 1.0;                       // long enough to read the numbers
 
+      S.play('whoosh');                // the trays leaving
       [p1, p2].forEach(function (p) {
-        E.setActive(p.correctObject, false);
-        E.setScale(p.correctObject, E.baseScale(p.correctObject));
-        if (p.objects) E.setActive(p.objects, true);    // restore for a replay
+        if (p.Tray_number_obj) E.setActive(p.Tray_number_obj, false);
         p.settle();
         E.setActive(p.host, false);
       });
@@ -750,6 +794,7 @@ var Game = (function () {
   GameManager.prototype.onClickTryAgain = function () {
     if (this._retrying) return;
     this._retrying = true;
+    S.play('retry');
     // tear the wrong-answer state down BEFORE re-running the instruction, so
     // nothing from the failed attempt survives into the retry
     if (this.tryAgainButton) E.setActive(this.tryAgainButton, false);
@@ -868,6 +913,8 @@ var Game = (function () {
         grp.reset();
         // this component only drives the reward key, so its reveal IS the reward
         S.play('reward');
+        burstAt(id, { count: 12, reach: 340 });
+        setTimeout(function () { burstAt(id, { count: 8, reach: 270 }); }, 420);
         var base = E.getAnchoredPos(id);
         E.setScale(id, 0, 0);
         grp.tween(0.4, 'outBack', function (t) {
@@ -989,6 +1036,12 @@ var Game = (function () {
         var host = go(call.target);
         if (!host) return;
         S.play('celebrate');               // the confetti burst is the payoff
+        // spark bursts over the trays still on screen, so the celebration
+        // happens where the learner is looking and not only at stage centre
+        Object.keys(Game.plateByHost).forEach(function (k, i) {
+          if (!E.isActiveSelf(k)) return;
+          setTimeout(function () { burstAt(k, { count: 10, reach: 270 }); }, i * 150);
+        });
         return E.playParticles(host);
       }
       case 'SetActive': {
