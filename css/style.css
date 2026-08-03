@@ -41,6 +41,23 @@ html, body {
 @media (orientation:portrait) and (max-width:560px) { #rotate { display:flex; } }
 @media (prefers-reduced-motion:reduce) { #rotate .ph { animation:none; transform:rotate(-90deg); } }
 
+/* Shared four-point star mask, and the Arabian night palette the effects draw
+   from: lamp gold, amber, warm cream, rose and a little Persian teal. */
+:root {
+  --star:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon fill='%23fff' points='50,0 58,42 100,50 58,58 50,100 42,58 0,50 42,42'/></svg>");
+  --arabGold:#ffd76a;
+  --arabAmber:#ffb43f;
+  --arabCream:#fff3cf;
+  --arabRose:#ffb9d5;
+  --arabTeal:#8fe6d8;
+}
+.un-star {
+  background:currentColor;
+  -webkit-mask-image:var(--star); mask-image:var(--star);
+  -webkit-mask-size:100% 100%;    mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;  mask-repeat:no-repeat;
+}
+
 /* every Unity GameObject becomes one absolutely positioned div */
 .un { position:absolute; left:0; top:0; }
 .un-off { display:none !important; }
@@ -156,11 +173,6 @@ body.un-paused .un-spark::after { animation-play-state:paused; }
   animation-timing-function:cubic-bezier(.12,.72,.28,1);
   animation-fill-mode:forwards;
 }
-.un-burstfx {
-  --star:url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>\
-<polygon fill='%23fff' points='50,0 58,42 100,50 58,58 50,100 42,58 0,50 42,42'/></svg>");
-}
 @keyframes unBurstFly {
   0%   { transform:translate(-50%, -50%) scale(.15) rotate(0deg); opacity:0; }
   15%  { opacity:1; }
@@ -195,6 +207,30 @@ body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused;
 @media (prefers-reduced-motion: reduce) {
   [data-name="TrayParent"] > .un-btn { animation:none; }
 }
+
+/* Count label shown over a matched tray: "4 Gems". The scene's own reward card
+   says the same thing but is a full tray-sized graphic that buries the items, so
+   this is a compact pill instead -- names the count without covering what was
+   counted. Mounted outside the tray's glow filter. */
+.un-count {
+  position:absolute; pointer-events:none; z-index:7;
+  transform:translate(-50%, -50%);
+  padding:9px 22px 7px; border-radius:999px; white-space:nowrap;
+  font-family:"LilitaOne-Regular", system-ui, sans-serif;
+  font-size:38px; line-height:1; color:#2a1206;
+  background:linear-gradient(180deg, var(--arabCream), var(--arabGold) 62%, var(--arabAmber));
+  box-shadow:0 4px 0 rgba(120,60,10,.35), 0 8px 22px rgba(0,0,0,.35);
+  animation:unCountPop .42s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes unCountPop {
+  0%   { opacity:0; transform:translate(-50%, -70%) scale(.5); }
+  100% { opacity:1; transform:translate(-50%, -50%) scale(1); }
+}
+.un-count.un-count--out { animation:unCountOut .3s ease-in forwards; }
+@keyframes unCountOut {
+  to { opacity:0; transform:translate(-50%, -26%) scale(.86); }
+}
+body.un-paused .un-count { animation-play-state:paused; }
 
 /* ------------------------------------------------------------- reward key
    The final key is the payoff of the whole game, so it earns the biggest
@@ -231,56 +267,26 @@ body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused;
   78%  { transform:rotateY(360deg); }
   100% { transform:rotateY(360deg); }
 }
-/* A ring of sparks orbiting the key. One element whose box-shadows are the
-   sparks, so the whole orbit is a single composited layer that just rotates --
-   it costs nothing while giving the key something alive around it. */
-[data-name="Key"]::before {
-  content:''; position:absolute; left:50%; top:50%;
-  width:14px; height:14px; margin:-7px 0 0 -7px;
-  border-radius:50%; z-index:-1; pointer-events:none;
-  box-shadow:
-       0px -400px 0  7px rgba(255,255,255,.98),
-     283px -283px 0  1px rgba(255,238,165,.95),
-     400px    0px 0  5px rgba(255,255,255,.92),
-     283px  283px 0  0px rgba(255,232,140,.95),
-       0px  400px 0  4px rgba(255,255,255,.95),
-    -283px  283px 0  1px rgba(255,238,165,.92),
-    -400px    0px 0  5px rgba(255,255,255,.9),
-    -283px -283px 0  0px rgba(255,232,140,.98),
-     153px -370px 0 -2px rgba(255,255,255,.85),
-    -153px -370px 0 -2px rgba(255,255,255,.85),
-     153px  370px 0 -2px rgba(255,250,205,.8),
-    -153px  370px 0 -2px rgba(255,250,205,.8);
-  animation:keyOrbit 14s linear infinite;
+/* Orbiting stars around the key.
+
+   Built as real elements by the game (see orbitStars) rather than box-shadows:
+   a box-shadow can only ever be a round dot, and round dots read as bubbles,
+   not magic. Only the CONTAINER animates, so a dozen stars still cost one
+   composited layer. Two rings, counter-rotating at different speeds. */
+.un-orbit { position:absolute; pointer-events:none; width:0; height:0; }
+.un-orbit i {
+  position:absolute; left:0; top:0; display:block;
+  animation:orbTwinkle 2.6s ease-in-out infinite;
 }
-@keyframes keyOrbit {
-  0%   { rotate:0deg;   transform:scale(.88); opacity:.8; }
-  50%  {                transform:scale(1.1); opacity:1; }
-  100% { rotate:360deg; transform:scale(.88); opacity:.8; }
+.un-orbit--out { animation:orbSpin 15s linear infinite; }
+.un-orbit--in  { animation:orbSpin 10s linear infinite reverse; }
+@keyframes orbSpin { to { transform:rotate(360deg); } }
+@keyframes orbTwinkle {
+  0%, 100% { opacity:.45; }
+  50%      { opacity:1; }
 }
-/* A tighter ring of sparks INSIDE the 3D layer, so it foreshortens with the key
-   and the two rings drift against each other -- that differential is what sells
-   the depth. Counter-rotating, and faster. */
-[data-name="Key"] > .un-img::after {
-  content:''; position:absolute; left:50%; top:50%;
-  width:10px; height:10px; margin:-5px 0 0 -5px;
-  border-radius:50%; pointer-events:none;
-  box-shadow:
-       0px -270px 0  2px rgba(255,255,255,.9),
-     191px -191px 0 -2px rgba(255,244,190,.85),
-     270px    0px 0  0px rgba(255,255,255,.85),
-     191px  191px 0 -2px rgba(255,238,165,.85),
-       0px  270px 0  1px rgba(255,255,255,.88),
-    -191px  191px 0 -2px rgba(255,244,190,.8),
-    -270px    0px 0  0px rgba(255,255,255,.82),
-    -191px -191px 0 -2px rgba(255,238,165,.9);
-  animation:keyOrbitInner 9s linear infinite reverse;
-}
-@keyframes keyOrbitInner {
-  0%   { rotate:0deg;   opacity:.55; }
-  50%  {                opacity:1; }
-  100% { rotate:360deg; opacity:.55; }
-}
+body.un-paused .un-orbit, body.un-paused .un-orbit i { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) { .un-orbit { animation:none; } }
 
 /* soft breathing halo behind it -- a radial gradient, which is cheap */
 [data-name="Key"]::after {
@@ -298,13 +304,10 @@ body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused;
 }
 body.un-paused [data-name="Key"],
 body.un-paused [data-name="Key"] > .un-img,
-body.un-paused [data-name="Key"] > .un-img::after,
-body.un-paused [data-name="Key"]::before,
 body.un-paused [data-name="Key"]::after { animation-play-state:paused; }
 @media (prefers-reduced-motion: reduce) {
   [data-name="Key"], [data-name="Key"] > .un-img,
-  [data-name="Key"] > .un-img::after,
-  [data-name="Key"]::before, [data-name="Key"]::after { animation:none; }
+  [data-name="Key"]::after { animation:none; }
 }
 
 /* The action buttons breathe so a five-year-old knows where to tap next. The

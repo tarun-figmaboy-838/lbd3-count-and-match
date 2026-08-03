@@ -9,7 +9,8 @@ odd that has been reproduced rather than corrected.
 | Area | What Unity does | What this build does |
 |---|---|---|
 | ParticleSystem | Full GPU simulation from ~4,700 lines of serialized modules per system | Split by role. Always-on **backdrop** emitters become a CSS-animated sparkle field (four-point stars, drifting, colour-varied) built once — simulating them on a canvas cost ~40ms/frame for the whole session. One-shot **bursts** (the confetti) still run on a canvas, honouring `rateOverTime: 0` as burst-only. Always-on emitters nested inside a scaled object (the key's glow aura) are dropped and that object is styled directly, because the effect layer sits outside its transform and its offsets landed in the wrong place. |
-| Reward key | Particle glow aura + Animator | A CSS treatment instead: 3D `rotateY` spin with perspective, a sway, and a breathing radial halo. A rotating conic-gradient starburst was tried and abandoned — it cost ~160ms/frame (62fps to 6fps). |
+| Reward key | Particle glow aura + Animator | A CSS treatment instead: 3D `rotateY` spin with perspective, a sway, a breathing radial halo, and two counter-rotating rings of orbiting stars. A rotating conic-gradient starburst was tried and abandoned — it cost ~160ms/frame (62fps to 6fps). The orbit stars are real masked elements, not `box-shadow`s: a box-shadow can only be a round dot, and round dots read as bubbles rather than magic. |
+| Effect palette | — | Warm Arabian night: lamp gold, amber, cream, rose and a little Persian teal. Cool blue was removed — it read as generic sparkle rather than as this story's magic. |
 | Animator / AnimationClip | State machine with curves | Only the states actually reached by these scenes are reproduced, as explicit tweens. No generic bounce has been substituted for a real clip. |
 | TextMeshPro glyph layout | SDF text with font-intrinsic metrics, per-glyph kerning | Browser text layout with the original TTF, `letter-spacing` from `m_characterSpacing` and `line-height` from `m_lineSpacing`. Sub-pixel baseline and wrap points can differ by a pixel or two. |
 | 9-slice, atlas crop, tiled and filled image types | Supported by uGUI | **Not implemented.** Verified against the scene data: all 60 images in both scenes are type 0 (simple) with no border and no crop, so these code paths were removed rather than carried as dead weight. |
@@ -60,6 +61,10 @@ on the tray itself:
 
 - the tray glows green and gets a burst of star sparks
 - the tray's own number labels count the items off 1..N, and the items stay
+- a compact gold pill below the tray names it in words: "4 Gems", "4 Bottles" --
+  the same copy the scene's card carries, at a size that does not bury anything.
+  It sits **below** the tray because the number labels are anchored high and
+  actually render ~50px above the tray box, so a pill above it hid a digit
 - the count is spoken ("Great counting!")
 
 Nothing is lost but the card artwork, and the number labels arguably teach the

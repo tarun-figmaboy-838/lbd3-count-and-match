@@ -146,7 +146,83 @@ var Game = (function () {
   // distance, size, tint, spin and delay: that variation is what reads as magic
   // rather than as a ring of identical dots. The container is a child of the
   // node, so a glow filter on the node tints the sparks to match.
-  var BURST_TINTS = ['#ffffff', '#fff6c8', '#d8ffe2', '#ffe8a8', '#cfe9ff', '#ffd9f2'];
+  // Arabian night palette: lamp gold, amber and warm cream carry it, with rose
+  // and a little Persian teal for lift. Deliberately no cool blue -- that read
+  // as generic sparkle rather than as this story's magic.
+  var BURST_TINTS = ['#fff3cf', '#ffd76a', '#ffb43f', '#ffffff', '#ffb9d5', '#8fe6d8'];
+
+  /** Item words, matching the wording on the scene's own reward cards. */
+  var ITEM_WORDS = {
+    Tray1: 'Candles', Tray2: 'Gems', Tray3: 'Feathers',
+    Tray4: 'Bottles', Tray5: 'Crystals', Tray6: 'Apples'
+  };
+
+  /**
+   * Compact "4 Gems" pill above a tray. The scene ships a card that says the
+   * same thing, but it is a tray-sized graphic that buries the items the learner
+   * just counted; this names the count without hiding the evidence.
+   */
+  function countLabel(hostId, text, holdSec) {
+    var rec = E.get(hostId);
+    if (!rec || !rec.parent) return;
+    var el = document.createElement('div');
+    el.className = 'un-count';
+    el.textContent = text;
+    el.style.left = (rec.left + rec.w / 2) + 'px';
+    // BELOW the tray: the number labels are anchored high and actually render
+    // ~50px above the tray box, so a pill above it hid one of the digits.
+    el.style.top = (rec.top + rec.h + 6) + 'px';
+    rec.parent.el.appendChild(el);
+    setTimeout(function () { el.classList.add('un-count--out'); },
+      Math.max(200, (holdSec || 1.8) * 1000));
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, Math.max(500, (holdSec || 1.8) * 1000 + 400));
+  }
+
+  /**
+   * Two counter-rotating rings of stars around a node. Only the containers
+   * animate, so a dozen stars cost one composited layer each -- and they are
+   * real masked stars, not box-shadow dots, which always read as bubbles.
+   */
+  function orbitStars(hostId, opts) {
+    var rec = E.get(hostId);
+    if (!rec || !rec.parent || rec._orbit) return;
+    opts = opts || {};
+    var cx = rec.left + rec.w / 2, cy = rec.top + rec.h / 2;
+    var rings = [
+      { cls: 'un-orbit--out', r: opts.outer || 300, n: 8, size: 34 },
+      { cls: 'un-orbit--in', r: opts.inner || 205, n: 6, size: 24 }
+    ];
+    rec._orbit = [];
+    rings.forEach(function (ring) {
+      var box = document.createElement('div');
+      box.className = 'un-orbit ' + ring.cls;
+      box.style.left = cx + 'px';
+      box.style.top = cy + 'px';
+      for (var i = 0; i < ring.n; i++) {
+        var a = (i / ring.n) * Math.PI * 2;
+        var s = document.createElement('i');
+        var sz = ring.size * (0.7 + Math.random() * 0.6);
+        s.className = 'un-star';
+        s.style.width = s.style.height = sz.toFixed(0) + 'px';
+        s.style.transform = 'translate(' +
+          (Math.cos(a) * ring.r - sz / 2).toFixed(1) + 'px,' +
+          (Math.sin(a) * ring.r - sz / 2).toFixed(1) + 'px)';
+        s.style.color = BURST_TINTS[i % 4];        // gold / cream / amber / white
+        s.style.animationDelay = (-Math.random() * 2.6).toFixed(2) + 's';
+        box.appendChild(s);
+      }
+      rec.parent.el.appendChild(box);
+      rec._orbit.push(box);
+    });
+  }
+  function clearOrbit(hostId) {
+    var rec = E.get(hostId);
+    if (!rec || !rec._orbit) return;
+    rec._orbit.forEach(function (b) { if (b.parentNode) b.parentNode.removeChild(b); });
+    rec._orbit = null;
+  }
   function burstAt(hostId, opts) {
     var rec = E.get(hostId);
     if (!rec) return;
@@ -780,6 +856,10 @@ var Game = (function () {
         p.markCorrect();
         if (p.Tray_number_obj) E.setActive(p.Tray_number_obj, true);
         burstAt(p.host, { count: 9, reach: 240 });
+        // names the count in words, above the tray, without covering the items
+        var nm = E.get(p.host);
+        countLabel(p.host, p.itemCount + ' ' +
+          (ITEM_WORDS[nm && nm.data.name] || 'Items'), 2.0);
         // a small settle-pop on the tray, from its own authored scale
         var id = p.host, base = E.baseScale(id);
         E.setScale(id, base * 0.94);
@@ -948,6 +1028,7 @@ var Game = (function () {
         S.play('reward');
         burstAt(id, { count: 12, reach: 340 });
         setTimeout(function () { burstAt(id, { count: 8, reach: 270 }); }, 420);
+        orbitStars(id, { outer: 320, inner: 215 });
         var base = E.getAnchoredPos(id);
         E.setScale(id, 0, 0);
         grp.tween(0.4, 'outBack', function (t) {
@@ -962,7 +1043,7 @@ var Game = (function () {
           });
         });
       },
-      onDisable: function () { grp.cancel(); }
+      onDisable: function () { grp.cancel(); clearOrbit(id); }
     };
   }
 

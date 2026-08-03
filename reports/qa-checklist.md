@@ -116,6 +116,7 @@ pass.**
 | Resize churn | one sparkle field after 3 viewport changes |
 | Playthrough | burst spawns and cleans to 0; each match counted exactly once; Yes/No and Next double-taps do not double-advance |
 | End state | 121 nodes, no duplicate ids, no stuck classes/scale/z-index, ≤1 voice-over channel, music still looping, **no timers pending**, input not locked, simulation not paused |
+| Effects | every spark is a masked star, never a round dot (asserted); two star rings orbit the reward key; count pills appear, never cover a number label, and clean up |
 | Console | 0 page errors, 0 console errors, 0 failed requests |
 
 ### The soft lock this audit caught
