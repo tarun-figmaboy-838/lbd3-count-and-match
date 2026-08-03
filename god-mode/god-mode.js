@@ -126,6 +126,15 @@
       case 'retry': gm.onClickTryAgain(); break;
       case 'reward':
       case 'complete':
+        // clear the board the way the real flow does, so the jump lands on the
+        // actual end state instead of the key floating over a live round
+        G.hideAllHands();
+        E.setActive('931046663', false);      // TrayParent
+        E.setActive('1574670127', false);     // Yes/No panel
+        ['1748713363', '427234635', '2025194983'].forEach(function (b) {
+          E.setActive(b, false);              // check / next / try again
+        });
+        gm.setIncorrectPanel(false);
         td.tutorialIndex = 2; td.messageIndex = 3; td.showNextMessage();
         break;
     }

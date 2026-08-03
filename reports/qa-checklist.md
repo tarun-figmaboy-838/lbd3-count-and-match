@@ -54,7 +54,8 @@ every step. All figures below were observed, not assumed.
 | God Mode repeated open/close ×5 | panel/badge/root stay at 1 each; overrides reverted; game still playable |
 | God Mode built-in checks | 11 passed, 0 failed |
 | Frame rate, gameplay | 62 fps with 38 animated sparkles, drifting trays and pulsing buttons (was 21 fps when the ambient effect ran on a per-frame canvas) |
-| Correct badge covering tray items | fixed — the tray item container is hidden while the card is up, and restored after |
+| Frame rate, reward-key screen | 62 fps with the 3D key spin and halo (a conic-gradient starburst had dropped it to 6 fps; 0 effect canvases remain) |
+| Correct-answer feedback | two non-overlapping beats: numbered items in place (0.75 s), then the reward card (1.15 s). Items are never hidden while the learner is reading them, and no text layer collides |
 | Correct badge scale | authored 0.611 (a tween to a flat 1 had made it 164% and washed the screen out) |
 
 ### Responsive re-check — locked canvas (measured, all clean)

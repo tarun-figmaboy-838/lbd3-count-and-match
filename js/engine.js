@@ -766,6 +766,11 @@ var Engine = (function () {
     var r = get(id);
     return (r && r.data && r.data.scale) ? r.data.scale[0] : 1;
   }
+  /** Temporary stacking override; pass null to hand control back to the scene. */
+  function raise(id, z) {
+    var r = get(id);
+    if (r) r.el.style.zIndex = (z == null ? '' : String(z));
+  }
   function setRotZ(id, deg) {
     var r = get(id); if (!r) return;
     r.rotZ = deg; applyTransform(r);
@@ -1139,8 +1144,6 @@ var Engine = (function () {
    * elements instead, which the compositor animates for free, and the canvas
    * path is kept for transient bursts like the confetti.
    */
-  function isAmbient(ps) { return !!(ps.looping && ps.playOnAwake); }
-
   function ensureAmbientField(rec) {
     if (rec.spark) return;
     var ps = rec.particles, sc = particleScale(rec);
@@ -1161,26 +1164,32 @@ var Engine = (function () {
     box.style.height = spreadY + 'px';
     box.style.left = (rec.left - spreadX / 2) + 'px';
     box.style.top = (rec.top - spreadY / 2) + 'px';
-    var rgb = css([col[0], col[1], col[2]]);
+    var base = css([col[0], col[1], col[2]]);
     var peak = clamp01(col.length > 3 ? col[3] : 1);
+    // A few tints around the authored colour: a single flat hue reads as dust,
+    // a warm/cool mix reads as enchantment. The authored colour stays dominant.
+    var TINTS = [base, base, base, '#fff8e0', '#ffffff', '#cfe9ff', '#ffd9f2'];
 
     for (var i = 0; i < n; i++) {
       var s = el('div', 'un-spark');
       // a spread of sizes, with a few noticeably brighter "hero" sparkles, so
       // the field has depth instead of looking like uniform dots
       var hero = (i % 5 === 0);
-      var d = dia * (hero ? 1.5 + Math.random() * 0.7 : 0.55 + Math.random() * 0.6);
+      var d = dia * (hero ? 1.15 + Math.random() * 0.35 : 0.5 + Math.random() * 0.55);
       s.style.width = s.style.height = d + 'px';
+      var tint = TINTS[(Math.random() * TINTS.length) | 0];
       s.style.left = (Math.random() * 100) + '%';
       s.style.top = (Math.random() * 100) + '%';
-      s.style.background = 'radial-gradient(circle, ' + rgb + ' 0%, ' + rgb +
+      s.style.background = 'radial-gradient(circle, ' + tint + ' 0%, ' + tint +
         ' 22%, rgba(0,0,0,0) 72%)';
-      s.style.color = rgb;                       // the ::after star
+      s.style.color = tint;                      // the ::after star
       s.style.opacity = '0';
       s.style.setProperty('--pk', String(hero ? peak : peak * 0.72));
+      // per-sparkle drift vector: mostly rising, with a lateral wander
+      s.style.setProperty('--dx', ((Math.random() - 0.5) * 90).toFixed(1) + 'px');
+      s.style.setProperty('--dy', (-40 - Math.random() * 90).toFixed(1) + 'px');
       s.style.animationDuration = (life * (0.55 + Math.random() * 0.75)).toFixed(2) + 's';
       s.style.animationDelay = (-Math.random() * life * 1.8).toFixed(2) + 's';
-      if (i % 2) s.style.animationDirection = 'alternate';
       box.appendChild(s);
     }
     var h = fxHost(rec);
@@ -1258,8 +1267,17 @@ var Engine = (function () {
         releaseAmbientField(rec);
         continue;
       }
-      // ambient fields are CSS-animated: built once, then zero per-frame cost
-      if (isAmbient(ps)) { ensureAmbientField(rec); continue; }
+      // Always-on looping emitters are ambient decoration, never simulated.
+      // Backdrop ones become a CSS sparkle field (built once, zero per-frame
+      // cost); ones nested inside a scaled object -- the key's glow aura -- are
+      // dropped entirely and that object is styled directly in CSS, because the
+      // effect layer sits outside its transform and its offsets landed in the
+      // wrong place (a stray blob beside the key).
+      if (ps.looping && ps.playOnAwake) {
+        if (rec.parent && rec.parent.isRootCanvas) ensureAmbientField(rec);
+        else releaseFxCanvas(rec);
+        continue;
+      }
       var playing = ps.playOnAwake || rec._playing;
       if (!playing && !(rec._pool && rec._pool.length)) { releaseFxCanvas(rec); continue; }
 
@@ -1419,6 +1437,7 @@ var Engine = (function () {
     setSprite: setSprite, setImageColor: setImageColor,
     setText: setText, getText: getText, setTextColor: setTextColor,
     setAlpha: setAlpha, setScale: setScale, getScale: getScale, baseScale: baseScale,
+    raise: raise,
     setRotZ: setRotZ, getRotZ: getRotZ,
     setAnchoredPos: setAnchoredPos, getAnchoredPos: getAnchoredPos,
     setPixelOffset: setPixelOffset,

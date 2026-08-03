@@ -669,17 +669,32 @@ var Game = (function () {
     this.correct.reset();
     var g = this.correct;
     S.play('correct');
+    /*
+     * Two beats, never overlapping.
+     *
+     * The reward art is a glow PLUS its own plate PLUS baked-in text
+     * ("That's correct! / 4 Gems"), so it is built to replace the tray. Drawing
+     * it over the items buried them; drawing the items over it collided three
+     * layers of text. Neither is acceptable in a counting game, where the
+     * learner has to see what they counted.
+     *
+     *   beat 1  the tray glows green and the number labels count the items
+     *           the learner just tapped  -- the answer is confirmed in place
+     *   beat 2  items and numbers step aside for the reward card
+     */
     g.run(function* () {
-      [p1, p2].forEach(function (p, i) {
-        E.setActive(p.correctObject, true);
-        // The badge is a full card ("That's correct! 4 Gems") drawn over the
-        // tray, but it is narrower than the item spread, so the items poked out
-        // around its edges and read as a broken overlap. The card replaces them.
-        if (p.objects) E.setActive(p.objects, false);
+      [p1, p2].forEach(function (p) {
         p.markCorrect();
-        // The badge pops in rather than blinking on. Every step is a multiple
-        // of the badge's OWN authored scale (0.611 here) -- tweening to a flat
-        // 1 blew it up to 164% and washed the screen out in yellow.
+        if (p.Tray_number_obj) E.setActive(p.Tray_number_obj, true);
+      });
+      yield 0.75;
+
+      [p1, p2].forEach(function (p, i) {
+        if (p.Tray_number_obj) E.setActive(p.Tray_number_obj, false);
+        if (p.objects) E.setActive(p.objects, false);
+        E.setActive(p.correctObject, true);
+        // Scaled from the badge's OWN authored scale (0.611): tweening to a
+        // flat 1 blew it up to 164% and washed the screen out in yellow.
         var base = E.baseScale(p.correctObject);
         E.setScale(p.correctObject, base * 0.55);
         g.tween(0.3, 'outBack', function (t) {
@@ -687,11 +702,12 @@ var Game = (function () {
         }, function () { E.setScale(p.correctObject, base); });
         if (i === 0) S.play('pop', null, 20);
       });
-      yield 1.5;
+      yield 1.15;
+
       [p1, p2].forEach(function (p) {
         E.setActive(p.correctObject, false);
         E.setScale(p.correctObject, E.baseScale(p.correctObject));
-        if (p.objects) E.setActive(p.objects, true);   // restore for a replay
+        if (p.objects) E.setActive(p.objects, true);    // restore for a replay
         p.settle();
         E.setActive(p.host, false);
       });
