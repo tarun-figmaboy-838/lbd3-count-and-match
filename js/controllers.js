@@ -390,6 +390,8 @@ var Game = (function () {
     this.incorrectSprite = sprite(cfg.incorrectSprite);
     // plateImage = GetComponent<Image>() on the tray itself
     this.plateImage = this.host;
+    // the container holding this tray's counted items (candles, gems, ...)
+    this.objects = E.childByName(this.host, 'objects');
     this.isSelected = false;
   }
   PlateItem.prototype.onClicked = function () {
@@ -670,6 +672,10 @@ var Game = (function () {
     g.run(function* () {
       [p1, p2].forEach(function (p, i) {
         E.setActive(p.correctObject, true);
+        // The badge is a full card ("That's correct! 4 Gems") drawn over the
+        // tray, but it is narrower than the item spread, so the items poked out
+        // around its edges and read as a broken overlap. The card replaces them.
+        if (p.objects) E.setActive(p.objects, false);
         p.markCorrect();
         // The badge pops in rather than blinking on. Every step is a multiple
         // of the badge's OWN authored scale (0.611 here) -- tweening to a flat
@@ -685,6 +691,7 @@ var Game = (function () {
       [p1, p2].forEach(function (p) {
         E.setActive(p.correctObject, false);
         E.setScale(p.correctObject, E.baseScale(p.correctObject));
+        if (p.objects) E.setActive(p.objects, true);   // restore for a replay
         p.settle();
         E.setActive(p.host, false);
       });

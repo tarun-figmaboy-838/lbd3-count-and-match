@@ -709,6 +709,15 @@ var Engine = (function () {
     return out;
   }
   function isActiveSelf(id) { var r = get(id); return !!(r && r.activeSelf); }
+  /** Direct child of `id` whose GameObject name matches, or null. */
+  function childByName(id, name) {
+    var r = get(id);
+    if (!r) return null;
+    for (var i = 0; i < r.children.length; i++) {
+      if (String(r.children[i].data.name) === name) return r.children[i].id;
+    }
+    return null;
+  }
   function isActiveInHierarchy(id) {
     var r = get(id);
     while (r) { if (!r.activeSelf) return false; r = r.parent; }
@@ -1143,7 +1152,7 @@ var Engine = (function () {
       spreadX = spreadY = (ps.shapeRadius || 0.5) * 2 * sc;
     }
     var dia = Math.max(3, (ps.startSize || 1) * sc * 0.5);
-    var n = Math.max(4, Math.min(ps.maxParticles || 24, 28));
+    var n = Math.max(4, Math.min(ps.maxParticles || 24, 38));
     var col = ps.startColor || [1, 1, 1, 1];
     var life = Math.max(1.2, ps.startLifetime || 4);
 
@@ -1157,16 +1166,21 @@ var Engine = (function () {
 
     for (var i = 0; i < n; i++) {
       var s = el('div', 'un-spark');
-      var d = dia * (0.6 + Math.random() * 0.8);
+      // a spread of sizes, with a few noticeably brighter "hero" sparkles, so
+      // the field has depth instead of looking like uniform dots
+      var hero = (i % 5 === 0);
+      var d = dia * (hero ? 1.5 + Math.random() * 0.7 : 0.55 + Math.random() * 0.6);
       s.style.width = s.style.height = d + 'px';
       s.style.left = (Math.random() * 100) + '%';
       s.style.top = (Math.random() * 100) + '%';
       s.style.background = 'radial-gradient(circle, ' + rgb + ' 0%, ' + rgb +
-        ' 28%, rgba(0,0,0,0) 70%)';
+        ' 22%, rgba(0,0,0,0) 72%)';
+      s.style.color = rgb;                       // the ::after star
       s.style.opacity = '0';
-      s.style.setProperty('--pk', String(peak));
-      s.style.animationDuration = (life * (0.7 + Math.random() * 0.6)).toFixed(2) + 's';
-      s.style.animationDelay = (-Math.random() * life * 1.6).toFixed(2) + 's';
+      s.style.setProperty('--pk', String(hero ? peak : peak * 0.72));
+      s.style.animationDuration = (life * (0.55 + Math.random() * 0.75)).toFixed(2) + 's';
+      s.style.animationDelay = (-Math.random() * life * 1.8).toFixed(2) + 's';
+      if (i % 2) s.style.animationDirection = 'alternate';
       box.appendChild(s);
     }
     var h = fxHost(rec);
@@ -1400,7 +1414,7 @@ var Engine = (function () {
   return {
     boot: boot, get: get, byName: byName, nodes: function () { return nodes; },
     order: function () { return order; },
-    setActive: setActive, isActiveSelf: isActiveSelf,
+    setActive: setActive, isActiveSelf: isActiveSelf, childByName: childByName,
     isActiveInHierarchy: isActiveInHierarchy, onActivated: onActivated,
     setSprite: setSprite, setImageColor: setImageColor,
     setText: setText, getText: getText, setTextColor: setTextColor,

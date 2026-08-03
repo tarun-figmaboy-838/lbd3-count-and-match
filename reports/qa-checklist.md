@@ -60,7 +60,9 @@ every step. All figures below were observed, not assumed.
 | God Mode opens on `g` / `G` / `Shift+G` / `Ctrl+G` | no (only `Ctrl+Shift+G`) |
 | God Mode repeated open/close ×5 | panel/badge/root stay at 1 each; overrides reverted; game still playable |
 | God Mode built-in checks | 11 passed, 0 failed |
-| Frame rate, gameplay | 62 fps (was 21 fps before the ambient effect moved off the per-frame canvas) |
+| Frame rate, gameplay | 62 fps with 38 animated sparkles, drifting trays and pulsing buttons (was 21 fps when the ambient effect ran on a per-frame canvas) |
+| Correct badge covering tray items | fixed — the tray item container is hidden while the card is up, and restored after |
+| Correct badge scale | authored 0.611 (a tween to a flat 1 had made it 164% and washed the screen out) |
 
 ### Responsive re-check — locked canvas (measured, all clean)
 

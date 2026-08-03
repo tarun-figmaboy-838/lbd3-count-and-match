@@ -49,28 +49,54 @@ html, body {
    confetti burst on top. */
 .un-fx { position:absolute; left:0; top:0; pointer-events:none; }
 
-/* Ambient sparkle field: spread across the backdrop, animated by the
-   compositor so it costs nothing per frame. Small, soft and slow on purpose --
-   background twinkle, never something that competes with the trays. */
+/* Ambient sparkle field: spread across the backdrop, animated entirely by the
+   compositor so it costs nothing per frame.
+
+   Each sparkle is a soft round bloom (the element background) plus a crisp
+   four-point star (::after) that turns slowly. Plain round dots read as dust;
+   the star shape is what makes it look enchanted rather than noisy. Still small
+   and slow on purpose -- backdrop magic, never competing with the trays. */
 .un-spark-field { position:absolute; pointer-events:none; overflow:visible; }
 .un-spark {
   position:absolute; border-radius:50%; pointer-events:none;
   animation-name:unTwinkle; animation-iteration-count:infinite;
   animation-timing-function:ease-in-out;
 }
-@keyframes unTwinkle {
-  0%   { opacity:0;               transform:scale(.45); }
-  45%  { opacity:var(--pk, 1);    transform:scale(1); }
-  100% { opacity:0;               transform:scale(.5) translateY(-14px); }
+.un-spark::after {
+  content:''; position:absolute; inset:-42%;
+  background:currentColor;
+  clip-path:polygon(
+    50% 0%,   57% 43%, 100% 50%, 57% 57%,
+    50% 100%, 43% 57%, 0% 50%,   43% 43%);
+  animation:unSparkSpin 9s linear infinite;
+  animation-direction:inherit;
 }
+@keyframes unTwinkle {
+  0%   { opacity:0;             transform:scale(.35) translateY(6px); }
+  45%  { opacity:var(--pk, 1);  transform:scale(1)   translateY(0); }
+  100% { opacity:0;             transform:scale(.45) translateY(-18px); }
+}
+@keyframes unSparkSpin { to { transform:rotate(180deg); } }
+
 /* God Mode / debug pause must hold CSS effects too, not just the tweens. */
-body.un-paused .un-spark { animation-play-state:paused; }
+body.un-paused .un-spark,
+body.un-paused .un-spark::after { animation-play-state:paused; }
 @media (prefers-reduced-motion: reduce) {
   .un-spark { animation-duration:0s; opacity:var(--pk, 1) !important; }
+  .un-spark::after { animation:none; }
 }
 
 .un-tmp { overflow:visible; }
-.un-tmp-inner { display:block; width:100%; }
+/* Storybook text: a hard offset shadow gives the letters a printed edge and a
+   soft one lifts them off the panel, so the instruction stays legible over any
+   background without needing a heavier outline. */
+.un-tmp-inner {
+  display:block; width:100%;
+  text-shadow:
+    0 2px 0 rgba(66,32,10,.30),
+    0 4px 14px rgba(20,6,40,.30);
+  letter-spacing:.005em;
+}
 
 .un-btn { -webkit-user-select:none; user-select:none; touch-action:none; }
 .un-btn.un-dis { pointer-events:none; }
@@ -101,6 +127,52 @@ body.un-paused .un-spark { animation-play-state:paused; }
   filter:
     drop-shadow(0 0 12px rgba(150,255,170,.95))
     drop-shadow(0 0 30px rgba(60,220,120,.6));
+}
+
+/* The trays are floating islands in a sky, so they drift. This uses the
+   standalone `translate` property, NOT `transform`: the layout pass writes an
+   inline transform on every .un, which would win over a CSS transform here.
+   Staggered per tray so the row never moves as one slab. Browsers without
+   `translate` simply render them static -- it is decoration only. */
+[data-name="TrayParent"] > .un-btn {
+  animation:unFloat 4.6s ease-in-out infinite;
+}
+[data-name="TrayParent"] > .un-btn:nth-child(2) { animation-delay:-.7s;  animation-duration:5.1s; }
+[data-name="TrayParent"] > .un-btn:nth-child(3) { animation-delay:-1.5s; animation-duration:4.3s; }
+[data-name="TrayParent"] > .un-btn:nth-child(4) { animation-delay:-2.2s; animation-duration:5.4s; }
+[data-name="TrayParent"] > .un-btn:nth-child(5) { animation-delay:-3.0s; animation-duration:4.8s; }
+[data-name="TrayParent"] > .un-btn:nth-child(6) { animation-delay:-3.8s; animation-duration:5.6s; }
+@keyframes unFloat {
+  0%, 100% { translate:0 -5px; }
+  50%      { translate:0  5px; }
+}
+body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) {
+  [data-name="TrayParent"] > .un-btn { animation:none; }
+}
+
+/* The action buttons breathe so a five-year-old knows where to tap next. The
+   glow is a pseudo-element, not a filter, because .un-press owns filter. */
+[data-name="check_btn"], [data-name="next_btn"],
+[data-name="tryagain_btn"], [data-name="Yes"], [data-name="No"] { isolation:isolate; }
+[data-name="check_btn"]::after, [data-name="next_btn"]::after,
+[data-name="tryagain_btn"]::after {
+  content:''; position:absolute; inset:-14% -6%; z-index:-1;
+  pointer-events:none; border-radius:50%;
+  background:radial-gradient(ellipse at center,
+    rgba(255,244,190,.65) 0%, rgba(255,225,130,.28) 45%, rgba(255,220,120,0) 72%);
+  animation:unBreathe 1.9s ease-in-out infinite;
+}
+@keyframes unBreathe {
+  0%, 100% { opacity:.35; transform:scale(.94); }
+  50%      { opacity:.9;  transform:scale(1.05); }
+}
+body.un-paused [data-name="check_btn"]::after,
+body.un-paused [data-name="next_btn"]::after,
+body.un-paused [data-name="tryagain_btn"]::after { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) {
+  [data-name="check_btn"]::after, [data-name="next_btn"]::after,
+  [data-name="tryagain_btn"]::after { animation:none; opacity:.6; }
 }
 
 /* Debug: God Mode can freeze interaction without touching game state. */
