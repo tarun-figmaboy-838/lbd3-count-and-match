@@ -101,6 +101,43 @@ type 0 (simple) with no border and no crop.
 Asset audit: no orphaned files in `assets/`, and every referenced path resolves.
 All 29 assets preload with 0 failures.
 
+## Pre-deploy audit
+
+A single stress pass (`audit.js`): splash, ghost-click guards, rapid taps,
+deselect, third-pick refusal, two wrong-answer retries, resize churn, a full
+playthrough with double-tapped buttons, then a cleanliness sweep. **All checks
+pass.**
+
+| Group | Checks |
+|---|---|
+| Splash | version watermark absent from the DOM; no duplicate ids; press-and-release-outside does not fire the button |
+| Interaction | fast double-tap = one pick; release-outside does not pick; deselect returns to zero and restores the pool; third pick refused while two are held |
+| Retry ×2 | picks cleared; one voice-over channel; no stuck glow class, shake offset, z-index or scale |
+| Resize churn | one sparkle field after 3 viewport changes |
+| Playthrough | burst spawns and cleans to 0; each match counted exactly once; Yes/No and Next double-taps do not double-advance |
+| End state | 121 nodes, no duplicate ids, no stuck classes/scale/z-index, ≤1 voice-over channel, music still looping, **no timers pending**, input not locked, simulation not paused |
+| Console | 0 page errors, 0 console errors, 0 failed requests |
+
+### The soft lock this audit caught
+
+Pressing **Check while "Click on check!" was still typing** resolved the match but
+left the dialogue frozen on that line — no praise, no next round, no action left.
+`continueAfterCondition` guarded on `!isTyping` and silently did nothing. The
+window was real even at the original speed: the Check button appears 0.5 s into a
+line that takes ~0.9 s to type. It now advances unconditionally, snapping the line
+to its full text first.
+
+### Voice-over synchronisation (measured timeline)
+
+```
+ 431ms  vo=Let_Me_Help_You              caption starts typing with the VO
+2211ms  vo=-                            VO done, caption complete and held
+3702ms  vo=Tap_two_trays_with_the_same   next line starts (1.5s gap = 1.0 authored + 0.55 read beat)
+8301ms  vo=-                            VO done, caption complete and held
+```
+
+Every line starts its caption with its voice-over and is never cut short.
+
 ## Manual checks still outstanding
 
 These need a human with the Unity original side by side:

@@ -22,6 +22,23 @@ var Game = (function () {
   var E = Engine, C = window.CONFIG;
   var S = (typeof Sfx !== 'undefined') ? Sfx : { play: function () { } };
 
+  /* ------------------------------------------------------------- kid pacing
+   * The Unity timings run fast for the 4-6 year olds this is aimed at: text
+   * types at 20 chars/sec and a line can auto-advance before its own voice-over
+   * has finished. Measured against the real clips:
+   *
+   *   "Great counting!"  types in 0.75s, its VO is 1.99s, and the line
+   *   auto-advanced after 1.75s -- so the praise was cut off mid-word by the
+   *   next line's VO, every single round.
+   *
+   * TYPE_SCALE slows the typewriter; READ_BEAT is a pause after the voice-over
+   * ends so the sentence can be taken in; and every auto-advancing line now
+   * waits for its voice-over to finish rather than racing a fixed delay.
+   */
+  var TYPE_SCALE = 1.25;     // 0.05s -> 0.0625s per character
+  var READ_BEAT = 0.55;      // held after the line has been spoken
+  var VO_CAP = 9;            // never wait longer than this on a clip
+
   // ------------------------------------------------------------- ref helpers
   var compHost = Object.create(null);   // component fileID -> GameObject id
   var trHost = Object.create(null);   // transform fileID  -> GameObject id
@@ -205,7 +222,7 @@ var Game = (function () {
     this.tray_btn = (cfg.tray_btn || []).map(go);
     this.randomMessages = cfg.randomMessages || [];
     this.tutorials = cfg.tutorials || [];
-    this.typingSpeed = cfg.typingSpeed != null ? cfg.typingSpeed : 0.05;
+    this.typingSpeed = (cfg.typingSpeed != null ? cfg.typingSpeed : 0.05) * TYPE_SCALE;
     this.tutorialIndex = 0;
     this.messageIndex = 0;
     this.isTyping = false;
@@ -317,7 +334,12 @@ var Game = (function () {
       self.isTyping = false;
       if (msg.waitForCondition) return;          // wait for external trigger
       if (!msg.waitForInput) {
+        // Wait for the line to finish being SPOKEN, then the authored beat, then
+        // a moment to take it in. Racing a fixed delay against the clip is what
+        // clipped "Great counting!" mid-word every round.
+        yield E.waitForChannel(VO_CHANNEL, VO_CAP);
         yield (msg.autoAdvanceDelay || 0);
+        yield READ_BEAT;
         self.showNextMessage();
       }
     });
@@ -347,8 +369,19 @@ var Game = (function () {
     this.advance();
   };
 
+  /**
+   * Called when the condition a line was waiting on has been met -- in practice,
+   * when a comparison resolves.
+   *
+   * This MUST advance unconditionally. The original guarded on `!isTyping`, so
+   * pressing Check while "Click on check!" was still typing resolved the match
+   * but left the dialogue frozen on that line: no praise, no next round, and no
+   * action left to take. A soft lock, and the window was real -- the Check button
+   * appears 0.5s into a line that takes ~0.9s to type. `advance` snaps the line
+   * to its full text first, so nothing is lost by not waiting.
+   */
   TutorialDialogue.prototype.continueAfterCondition = function () {
-    if (!this.isTyping) this.showNextMessage();
+    this.advance();
   };
 
   TutorialDialogue.prototype.showNextIfNotTyping = function () {
@@ -761,7 +794,7 @@ var Game = (function () {
       yield 0.6;
       [p1, p2].forEach(function (p) { burstAt(p.host, { count: 5, reach: 180 }); });
       S.play('sparkle', null, 20);
-      yield 1.0;                       // long enough to read the numbers
+      yield 1.6;                       // long enough to read the numbers
 
       S.play('whoosh');                // the trays leaving
       [p1, p2].forEach(function (p) {
@@ -786,7 +819,7 @@ var Game = (function () {
         shakePosition(g, p1.host, 1, 10, 10, 90),
         shakePosition(g, p2.host, 1, 10, 10, 90)
       ]);
-      yield 0.5;
+      yield 0.9;
       self._resolving = false;      // Try Again is the only way forward now
     });
   };
@@ -937,7 +970,7 @@ var Game = (function () {
   function TypewriterEffect(cfg) {
     var textId = go(cfg.chatText);
     var full = cfg.fullMessage == null ? '' : String(cfg.fullMessage);
-    var speed = cfg.typingSpeed != null ? cfg.typingSpeed : 0.05;
+    var speed = (cfg.typingSpeed != null ? cfg.typingSpeed : 0.05) * TYPE_SCALE;
     var hostId = go(cfg.__host);
     var grp = new E.TaskGroup('tw-' + hostId);
     return {

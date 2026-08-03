@@ -992,6 +992,37 @@ var Engine = (function () {
     }
   }
   function isAudioUnlocked() { return audioUnlocked; }
+  /**
+   * Resolves when the clip on `name` finishes (or is replaced, paused, or the
+   * cap expires). Lets a caller hold a step until the line has actually been
+   * spoken instead of guessing a delay -- and never hangs if the audio failed
+   * to load, which is why the cap is not optional.
+   */
+  function waitForChannel(name, capSec) {
+    var ch = channels[name];
+    var el = ch && ch.el;
+    if (!el || !el.src || el.paused || el.ended) return Promise.resolve();
+    return new Promise(function (res) {
+      var done = false;
+      function fin() {
+        if (done) return;
+        done = true;
+        el.removeEventListener('ended', fin);
+        el.removeEventListener('pause', fin);
+        el.removeEventListener('error', fin);
+        clearTimeout(cap); clearInterval(poll);
+        res();
+      }
+      var cap = setTimeout(fin, Math.max(250, (capSec || 8) * 1000));
+      el.addEventListener('ended', fin);
+      el.addEventListener('pause', fin);
+      el.addEventListener('error', fin);
+      // also stop waiting if the channel has moved on to another clip
+      var poll = setInterval(function () {
+        if (!ch.el || ch.el !== el || el.ended || el.paused) fin();
+      }, 120);
+    });
+  }
   function audioDuration(src) {
     return new Promise(function (res) {
       var a = clip(src);
@@ -1447,7 +1478,7 @@ var Engine = (function () {
     TaskGroup: TaskGroup, ease: ease, easings: E,
     play: play, playOneShot: playOneShot, stopChannel: stopChannel,
     stopAllAudio: stopAllAudio, audioState: audioState,
-    isAudioUnlocked: isAudioUnlocked,
+    isAudioUnlocked: isAudioUnlocked, waitForChannel: waitForChannel,
     audioDuration: audioDuration, preload: preload, spritePaths: spritePaths,
     unlockAudio: unlockAudio,
     onTick: onTick, onResize: function (f) { resizeHooks.push(f); },

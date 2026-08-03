@@ -17,8 +17,32 @@ odd that has been reproduced rather than corrected.
 
 ## Deliberate deviations
 
-Two places intentionally differ from Unity, both signed off: tray **deselect**
-(see "Reproduced original quirks" below) and the **correct-answer beat**.
+Three places intentionally differ from Unity, all signed off: tray **deselect**
+(see "Reproduced original quirks" below), the **correct-answer beat**, and the
+**pacing** below.
+
+### Pacing for young children
+
+The Unity timings run fast for 4-6 year olds, and one line could auto-advance
+before its own voice-over had finished. Measured against the real clips:
+
+| line | types in | voice-over | old advance |
+|---|---|---|---|
+| "Let me help you!" | 0.80 s | 1.57 s | 1.80 s |
+| "Tap two trays…" | 2.20 s | 4.49 s | waits for a tap |
+| "Great counting!" | 0.75 s | **1.99 s** | **1.75 s — clipped** |
+
+"Great counting!" was cut off mid-word by the next line's voice-over every
+single round. Three changes:
+
+- the typewriter runs at 0.0625 s/char instead of 0.05 (16 chars/sec)
+- an auto-advancing line now **waits for its voice-over to actually finish**
+  (`Engine.waitForChannel`, capped at 9 s so a failed clip can never hang the
+  flow) before the authored delay
+- a 0.55 s read beat follows, so the sentence can be taken in
+
+The correct-answer hold is 2.35 s and the wrong-answer hold 0.9 s, both up from
+the original, to give a child time to look at the numbered items.
 
 ### The correct-answer beat
 
