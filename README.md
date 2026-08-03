@@ -18,7 +18,15 @@ fetched.
 ## Deploy it
 
 Upload the folder as-is to Vercel, Netlify, GitHub Pages, S3 or any static host.
-There is nothing to configure.
+There is no build step and nothing to configure.
+
+**Vercel:** import the repository and accept the defaults — `vercel.json` already
+declares no framework and no build command, serves the repo root, and sets cache
+headers (30 days on `assets/`, always revalidate on the HTML and the scripts, so a
+code change goes live immediately while the 4.8 MB of artwork stays cached).
+
+Nothing in the build is environment-specific, so a preview deployment behaves
+exactly like production.
 
 ## Folder structure
 

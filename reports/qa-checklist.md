@@ -143,6 +143,19 @@ they are spoken and the last word lands just before the voice stops. Lines are
 never cut short: an auto-advancing line waits for its clip to finish, then the
 authored delay, then a 0.55 s read beat.
 
+## Final pre-deploy measurements
+
+| | |
+|---|---|
+| DOM ready | 573 ms |
+| All 29 assets settled | 584 ms, 0 failures, no timeout |
+| Splash / gameplay / key-screen frame rate | 61 / 62 / 62 fps |
+| Frame rate after a full round | 62 fps (no decay) |
+| Soft-lock probe (Check pressed mid-typing) | advances correctly, match counted |
+| Voice-over vs caption | 4.5 s clip, 3.75 s of typing, ratio 0.83 |
+| Number labels occluded by anything | none (hit-tested at each digit's centre) |
+| Console / page errors, failed requests | 0 / 0 |
+
 ## Manual checks still outstanding
 
 These need a human with the Unity original side by side:

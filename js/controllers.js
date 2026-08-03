@@ -39,9 +39,27 @@ var Game = (function () {
   var READ_BEAT = 0.55;      // held after the line has been spoken
   var VO_CAP = 9;            // never wait longer than this on a clip
 
-  // Vertical gap opened between the two tray rows so each row's count tag has a
-  // clear lane beneath it (see GridLayoutManager for the arithmetic).
-  var TRAY_ROW_GAP = 96;
+  /* ------------------------------------------------- tray block geometry
+   * Solved against the fixed furniture rather than eyeballed. The dialogue panel
+   * occupies stage y 0..284 and the Check button starts at 891, leaving a 607px
+   * band. Each tray's number labels render 49px ABOVE its cell, so with two
+   * 265.6px rows the digits collided with the panel at the top and with the
+   * other row's plate in the middle.
+   *
+   *   gap 50   row2's digits clear row1's plate
+   *   drop 50  as far as the Check button allows, which buys back most of the
+   *            clearance under the dialogue panel
+   *
+   * That still leaves the top row's topmost digit a little under the panel, and
+   * the band is genuinely too small to fix by moving things -- shifting the
+   * digits down instead put them on top of the items, which is no better. So the
+   * digits are left exactly where the scene authored them (directly above their
+   * item, which is the clearest association) and are RAISED above the panel in
+   * z-order while they are shown. Nothing can occlude them.
+   */
+  var TRAY_ROW_GAP = 50;        // between the two rows
+  var TRAY_BLOCK_DROP = 50;     // whole grid, away from the dialogue panel
+  var NUMBER_Z = 6;             // above the dialogue panel's sorting order of 5
 
   // ------------------------------------------------------------- ref helpers
   var compHost = Object.create(null);   // component fileID -> GameObject id
@@ -176,9 +194,10 @@ var Game = (function () {
     face.textContent = text;
     el.appendChild(face);
     el.style.left = (rec.left + rec.w / 2) + 'px';
-    // BELOW the tray: the number labels are anchored high and actually render
-    // ~50px above the tray box, so a tag above it hid one of the digits.
-    el.style.top = (rec.top + rec.h + 6) + 'px';
+    // On the plate's empty lower rim, inside the cell: below the items, clear of
+    // the digits, and needing no vertical space of its own -- there is none left
+    // between the dialogue panel and the Check button.
+    el.style.top = (rec.top + rec.h * 0.84) + 'px';
     // Drift in lockstep with the tray by borrowing its float timing, so the tag
     // reads as hanging from the same floating island rather than pinned to air.
     var cs = window.getComputedStyle(rec.el);
@@ -1064,6 +1083,15 @@ var Game = (function () {
      * moves off-centre: the grid keeps its middle-centre alignment.
      */
     rec.grid.spacing = [rec.grid.spacing[0], TRAY_ROW_GAP];
+
+    // drop the whole block away from the dialogue panel
+    var ap = E.getAnchoredPos(hostId);
+    E.setAnchoredPos(hostId, ap[0], ap[1] - TRAY_BLOCK_DROP);
+
+    // The digits sit above their items by design; raise them over the dialogue
+    // panel so the top row's cannot be clipped by it. Only the digits are
+    // raised, never the tray art, so the panel still covers the plate.
+    E.byName('number').forEach(function (n) { E.raise(n.id, NUMBER_Z); });
     E.layoutGrid(hostId);
     // Update(): row count follows the number of active children
     E.onTick(function () {
