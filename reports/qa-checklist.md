@@ -22,20 +22,13 @@ Automated in real headless Chromium 131 via Playwright (`tools/qa_run.py`), not 
 | Tray5 | 675 | 350 | 572 | 266 |
 | Tray6 | 1251 | 350 | 572 | 266 |
 
-## Responsive matrix
+## Responsive matrix (original Expand scaler — superseded)
 
-| Viewport | canvas scale | stage (canvas units) | page errors | scrolling |
-|---|---|---|---|---|
-| 1920×1080 | 1.0000 | 1920×1080 | 0 | no |
-| 1600×900 | 0.8333 | 1920×1080 | 0 | no |
-| 1366×768 | 0.7111 | 1921×1080 | 0 | no |
-| 1280×720 | 0.6667 | 1920×1080 | 0 | no |
-| 1024×768 | 0.5333 | 1920×1440 | 0 | no |
-| 800×600 | 0.4167 | 1920×1440 | 0 | no |
-| 390×844 | 0.2031 | 1920×4155 | 0 | no |
-| 844×390 | 0.3611 | 2337×1080 | 0 | no |
-
-The stage growing past 1920×1080 on non-16:9 viewports is correct Expand behaviour: Unity reveals extra canvas area rather than cropping or stretching.
+Kept for the record. These numbers describe the *original* CanvasScaler
+behaviour, where the stage grew past 1920×1080 on non-16:9 viewports
+(1920×1440 at 4:3, 2337×1080 on a phone, 1920×4155 in portrait). The canvas is
+now **locked** to 1920×1080 — see the locked-canvas table further down for the
+current measurements.
 
 ## Fix pass — re-verified in headless Chromium via Playwright
 
@@ -57,7 +50,7 @@ every step. All figures below were observed, not assumed.
 | Rapid repeat taps on Check / Try Again / Yes / next | no double-fire, no state drift |
 | Deselect: un-pick from 1 and from 2, then complete a real match | passes |
 | Third pick while two are held | refused |
-| God Mode opens on `g` / `G` / `Shift+G` / `Ctrl+G` | no (only `Ctrl+Shift+G`) |
+| God Mode shortcut | opens on `Shift+G`; `g` / `G` / `Ctrl+G` / `Alt+Shift+G` are no-ops, and it is ignored while typing in its own fields |
 | God Mode repeated open/close ×5 | panel/badge/root stay at 1 each; overrides reverted; game still playable |
 | God Mode built-in checks | 11 passed, 0 failed |
 | Frame rate, gameplay | 62 fps with 38 animated sparkles, drifting trays and pulsing buttons (was 21 fps when the ambient effect ran on a per-frame canvas) |
