@@ -208,53 +208,50 @@ body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused;
   [data-name="TrayParent"] > .un-btn { animation:none; }
 }
 
-/* Count tag: "4 Gems". The scene's own reward card says the same thing but is a
-   tray-sized graphic that buries the items, so this names the count compactly in
-   the lane opened beneath each row.
+/* Count tag: "4 Gems", in the lane opened beneath each tray row.
 
-   Styled as a little brass cartouche: deep amber rim, lamp-gold face, a lifted
-   highlight along the top and a hard drop so it reads as an object rather than a
-   flat chip. A four-point star sits on each side. Text is near-black brown on
-   gold -- the highest-contrast pairing available in this palette -- and large,
-   because a five-year-old has to read it at arm's length. */
+   Deliberately minimal. An earlier version was a full brass cartouche -- thick
+   rim, inset highlights, hard drop, outer glow, a star on each side -- and it
+   fought the artwork for attention instead of just naming the count. This is a
+   quiet purple lozenge borrowed from the scene's own night palette: enough
+   contrast for a five-year-old to read at arm's length, and nothing more.
+
+   Two elements on purpose. The OUTER one drifts with its tray, reusing the same
+   unFloat keyframes with the tray's period and phase, so tag and tray move as one
+   object. The INNER one owns the pop. They coexist because unFloat animates the
+   standalone translate property while the pop animates transform; both on one
+   element would fight. */
 .un-count {
   position:absolute; pointer-events:none; z-index:7;
   transform:translate(-50%, -50%);
-  display:flex; align-items:center; gap:14px;
-  padding:10px 26px 8px; white-space:nowrap;
-  font-family:"LilitaOne-Regular", system-ui, sans-serif;
-  font-size:52px; line-height:1; letter-spacing:.01em;
-  color:#3b1a05;
-  border-radius:999px;
-  border:5px solid #a85f14;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,0) 42%),
-    linear-gradient(180deg, var(--arabCream) 0%, var(--arabGold) 55%, var(--arabAmber) 100%);
-  box-shadow:
-    inset 0 -4px 0 rgba(150,80,10,.28),
-    0 6px 0 #8a4a0c,
-    0 12px 26px rgba(0,0,0,.45);
-  text-shadow:0 2px 0 rgba(255,255,255,.5);
-  animation:unCountPop .46s cubic-bezier(.2,1.55,.35,1) both;
+  animation-name:unFloat;
+  animation-timing-function:ease-in-out;
+  animation-iteration-count:infinite;
 }
-/* the two ornamental stars */
-.un-count::before, .un-count::after {
-  content:''; flex:0 0 auto; width:26px; height:26px;
-  background:#8a4a0c;
-  -webkit-mask-image:var(--star); mask-image:var(--star);
-  -webkit-mask-size:100% 100%;    mask-size:100% 100%;
-  -webkit-mask-repeat:no-repeat;  mask-repeat:no-repeat;
+.un-count-face {
+  display:block; white-space:nowrap;
+  padding:7px 22px 5px;
+  font-family:"LilitaOne-Regular", system-ui, sans-serif;
+  font-size:44px; line-height:1.05; letter-spacing:.01em;
+  color:#ffe7b4;
+  background:rgba(40,15,68,.8);
+  border:2px solid rgba(255,215,106,.7);
+  border-radius:999px;
+  text-shadow:0 2px 5px rgba(12,2,26,.75);
+  animation:unCountPop .4s cubic-bezier(.2,1.45,.4,1) both;
 }
 @keyframes unCountPop {
-  0%   { opacity:0; transform:translate(-50%, -86%) scale(.4) rotate(-6deg); }
-  100% { opacity:1; transform:translate(-50%, -50%) scale(1)  rotate(0deg); }
+  0%   { opacity:0; transform:translateY(-18px) scale(.72); }
+  100% { opacity:1; transform:translateY(0)     scale(1); }
 }
-.un-count.un-count--out { animation:unCountOut .32s ease-in forwards; }
+.un-count-face.un-count--out { animation:unCountOut .3s ease-in forwards; }
 @keyframes unCountOut {
-  to { opacity:0; transform:translate(-50%, -20%) scale(.85); }
+  to { opacity:0; transform:translateY(16px) scale(.9); }
 }
-body.un-paused .un-count { animation-play-state:paused; }
-@media (prefers-reduced-motion: reduce) { .un-count { animation:none; } }
+body.un-paused .un-count, body.un-paused .un-count-face { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) {
+  .un-count, .un-count-face { animation:none; }
+}
 
 /* ------------------------------------------------------------- reward key
    The final key is the payoff of the whole game, so it earns the biggest

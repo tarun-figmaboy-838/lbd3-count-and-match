@@ -36,7 +36,13 @@ before its own voice-over had finished. Measured against the real clips:
 "Great counting!" was cut off mid-word by the next line's voice-over every
 single round. Three changes:
 
-- the typewriter runs at 0.0625 s/char instead of 0.05 (16 chars/sec)
+- the typewriter is **paced off each clip** rather than run at a constant. A
+  fixed rate made the text race the narration: "Tap two trays with the same
+  number of items." typed out in 2.75 s while the line takes 4.49 s to say, so
+  the sentence sat finished for nearly two seconds, which reads as fast and out of
+  sync. Characters are now spread across the clip and land at ~82% of it, so words
+  appear roughly as they are spoken. Measured: 3.78 s of typing against a 4.5 s
+  clip. Lines with no voice-over fall back to 0.0625 s/char
 - an auto-advancing line now **waits for its voice-over to actually finish**
   (`Engine.waitForChannel`, capped at 9 s so a failed clip can never hang the
   flow) before the authored delay
@@ -61,9 +67,13 @@ on the tray itself:
 
 - the tray glows green and gets a burst of star sparks
 - the tray's own number labels count the items off 1..N, and the items stay
-- a brass count tag below the tray names it in words: "✦ 4 Gems ✦" -- the same
-  copy the scene's card carries, at a size a five-year-old can read at arm's
-  length, and small enough to bury nothing
+- a minimal purple count tag below the tray names it in words: "4 Gems" -- the
+  same copy the scene's card carries, at a size a five-year-old can read at arm's
+  length. It drifts in phase with its tray (the tray animation's `currentTime` is
+  copied onto the tag, since matching duration and delay alone leaves them a whole
+  phase apart) so it reads as hanging from the same floating island. An earlier
+  version was a full brass cartouche with rim, inset highlights, glow and star
+  ornaments; it fought the artwork instead of naming the count
 - the count is spoken ("Great counting!")
 
 Nothing is lost but the card artwork, and the number labels arguably teach the

@@ -171,17 +171,43 @@ var Game = (function () {
     if (!rec || !rec.parent) return;
     var el = document.createElement('div');
     el.className = 'un-count';
-    el.textContent = text;
+    var face = document.createElement('span');
+    face.className = 'un-count-face';
+    face.textContent = text;
+    el.appendChild(face);
     el.style.left = (rec.left + rec.w / 2) + 'px';
     // BELOW the tray: the number labels are anchored high and actually render
-    // ~50px above the tray box, so a pill above it hid one of the digits.
+    // ~50px above the tray box, so a tag above it hid one of the digits.
     el.style.top = (rec.top + rec.h + 6) + 'px';
+    // Drift in lockstep with the tray by borrowing its float timing, so the tag
+    // reads as hanging from the same floating island rather than pinned to air.
+    var cs = window.getComputedStyle(rec.el);
+    if (cs.animationName && cs.animationName.indexOf('unFloat') >= 0) {
+      el.style.animationDuration = cs.animationDuration;
+      el.style.animationDelay = cs.animationDelay;
+    } else {
+      el.style.animationName = 'none';
+    }
     rec.parent.el.appendChild(el);
-    setTimeout(function () { el.classList.add('un-count--out'); },
-      Math.max(200, (holdSec || 1.8) * 1000));
+    // Matching duration and delay is not enough: the tray's float started at load
+    // and the tag's starts now, so they would drift a whole phase apart. Copy the
+    // tray animation's current time so the two rise and fall together.
+    try {
+      var pick = function (n) {
+        return (n.getAnimations ? n.getAnimations() : []).filter(function (a) {
+          return a.animationName === 'unFloat';
+        })[0];
+      };
+      var trayAnim = pick(rec.el), tagAnim = pick(el);
+      if (trayAnim && tagAnim && trayAnim.currentTime != null) {
+        tagAnim.currentTime = trayAnim.currentTime;
+      }
+    } catch (e) { /* no Web Animations: the tag simply floats out of phase */ }
+    var hold = Math.max(200, (holdSec || 1.8) * 1000);
+    setTimeout(function () { face.classList.add('un-count--out'); }, hold);
     setTimeout(function () {
       if (el.parentNode) el.parentNode.removeChild(el);
-    }, Math.max(500, (holdSec || 1.8) * 1000 + 400));
+    }, hold + 400);
   }
 
   /**
@@ -404,12 +430,31 @@ var Game = (function () {
     var text = msg.message == null ? '' : String(msg.message);
     this.isTyping = true;
     E.setText(this.dialogueText, '');
+    var clip = (msg.audioIndex >= 0) ? this.clips[msg.audioIndex] : null;
     this.typing.run(function* () {
+      /* Pace the typewriter off the CLIP, not off a constant.
+       *
+       * A fixed rate makes the text race the narration: "Tap two trays with the
+       * same number of items." typed out in 2.75s while the line takes 4.49s to
+       * say, so the sentence sat finished for nearly two seconds -- which reads
+       * as the text being fast and out of sync.
+       *
+       * Spreading the characters across the clip means the words appear roughly
+       * as they are spoken. Ends at ~82% so the last word lands just before the
+       * voice stops rather than after it. Falls back to the fixed rate when a
+       * line has no voice-over or its duration is unknown. */
+      var per = self.typingSpeed;
+      if (clip && text.length) {
+        var dur = yield E.audioDuration(clip);
+        if (dur > 0.3) {
+          per = Math.max(0.035, Math.min(0.2, (dur * 0.82) / text.length));
+        }
+      }
       var acc = '';
       for (var i = 0; i < text.length; i++) {
         acc += text[i];
         E.setText(self.dialogueText, acc);
-        yield self.typingSpeed;
+        yield per;
       }
       self.isTyping = false;
       if (msg.waitForCondition) return;          // wait for external trigger
@@ -1074,12 +1119,19 @@ var Game = (function () {
         grp.reset();
         E.setText(textId, '');
         srcPlayOwn(hostId);          // AudioSource playOnAwake on this object
+        var clip = (srcOf[String(hostId)] || {}).clip;
         grp.run(function* () {
+          // paced off its own clip, same reasoning as the dialogue typewriter
+          var per = speed;
+          if (clip && full.length) {
+            var dur = yield E.audioDuration(clip);
+            if (dur > 0.3) per = Math.max(0.035, Math.min(0.2, (dur * 0.82) / full.length));
+          }
           var acc = '';
           for (var i = 0; i < full.length; i++) {
             acc += full[i];
             E.setText(textId, acc);
-            yield speed;
+            yield per;
           }
         });
       },

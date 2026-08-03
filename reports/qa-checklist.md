@@ -117,7 +117,8 @@ pass.**
 | Playthrough | burst spawns and cleans to 0; each match counted exactly once; Yes/No and Next double-taps do not double-advance |
 | End state | 121 nodes, no duplicate ids, no stuck classes/scale/z-index, ≤1 voice-over channel, music still looping, **no timers pending**, input not locked, simulation not paused |
 | Effects | every spark is a masked star, never a round dot (asserted); two star rings orbit the reward key |
-| Count tag | brass cartouche reading "✦ 4 Gems ✦" in the lane opened beneath each row; asserted to overlap no number label, no item and not the Check button; cleans itself up |
+| Count tag | minimal purple lozenge, gold rim and lettering, drifting in phase with its tray (asserted within 2.5px) |
+| Count tag (legacy row) | brass cartouche reading "✦ 4 Gems ✦" in the lane opened beneath each row; asserted to overlap no number label, no item and not the Check button; cleans itself up |
 | Console | 0 page errors, 0 console errors, 0 failed requests |
 
 ### The soft lock this audit caught
@@ -132,13 +133,15 @@ to its full text first.
 ### Voice-over synchronisation (measured timeline)
 
 ```
- 431ms  vo=Let_Me_Help_You              caption starts typing with the VO
-2211ms  vo=-                            VO done, caption complete and held
-3702ms  vo=Tap_two_trays_with_the_same   next line starts (1.5s gap = 1.0 authored + 0.55 read beat)
-8301ms  vo=-                            VO done, caption complete and held
+clip                        voice-over   typing took   ratio
+Let_Me_Help_You                 1.57 s        1.25 s    0.80
+Tap_two_trays_with_the_same      4.5 s        3.78 s    0.84
 ```
 
-Every line starts its caption with its voice-over and is never cut short.
+Each caption is typed across the length of its own clip, so the words appear as
+they are spoken and the last word lands just before the voice stops. Lines are
+never cut short: an auto-advancing line waits for its clip to finish, then the
+authored delay, then a 0.55 s read beat.
 
 ## Manual checks still outstanding
 
