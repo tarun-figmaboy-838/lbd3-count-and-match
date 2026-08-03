@@ -56,6 +56,8 @@ every step. All figures below were observed, not assumed.
 | Frame rate, gameplay | 62 fps with 38 animated sparkles, drifting trays and pulsing buttons (was 21 fps when the ambient effect ran on a per-frame canvas) |
 | Frame rate, reward-key screen | 61-62 fps with the 3D key spin, two orbiting spark rings and the halo (a conic-gradient starburst had dropped it to 6 fps; 0 effect canvases remain) |
 | Correct-match burst | star sparks flying out from each matched tray in two waves, each with its own direction, size, tint, spin and delay; self-removing, verified back to 0 nodes |
+| Tray float | all six trays drift, each at its own phase and period (verified distinct per-tray offsets) |
+| Number labels | shown over the items on both the correct and the wrong path (1..N per tray), cleared on retry |
 | Backdrop coverage | the sparkle field spans the full canvas (measured field == stage exactly), 54 sparkles |
 | SFX cue count | 12: select, deselect, correct, sparkle, retry, next, wrong, pop, reward, celebrate, whoosh, button |
 | Correct-answer feedback | the reward card is **not** used. Its art is a full tray replacement (glow + own plate + baked text), so it can only be shown by removing the items — unacceptable in a counting game. The match is confirmed on the tray: green glow, star burst, and the tray's own number labels counting the items 1..N, which stay on screen throughout |

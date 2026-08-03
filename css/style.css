@@ -171,6 +171,31 @@ body.un-paused .un-spark::after { animation-play-state:paused; }
 body.un-paused .un-burstfx i { animation-play-state:paused; }
 @media (prefers-reduced-motion: reduce) { .un-burstfx { display:none; } }
 
+/* The trays are floating islands in a sky, so they drift. This uses the
+   standalone `translate` property, NOT `transform`: the layout pass writes an
+   inline transform on every .un, which would win over a CSS transform here.
+
+   Targeted by name rather than :nth-child -- TrayParent's first child is the
+   .un-img layer the renderer inserts, so the trays are children 2..7 and an
+   nth-child stagger silently addressed the wrong ones. Staggered so the row
+   never moves as one slab. Browsers without `translate` render them static;
+   it is decoration only. */
+[data-name="TrayParent"] > .un-btn { animation:unFloat 4.6s ease-in-out infinite; }
+[data-name="TrayParent"] > [data-name="Tray1"] { animation-delay:-0.2s; animation-duration:4.6s; }
+[data-name="TrayParent"] > [data-name="Tray2"] { animation-delay:-0.9s; animation-duration:5.1s; }
+[data-name="TrayParent"] > [data-name="Tray3"] { animation-delay:-1.7s; animation-duration:4.3s; }
+[data-name="TrayParent"] > [data-name="Tray4"] { animation-delay:-2.4s; animation-duration:5.4s; }
+[data-name="TrayParent"] > [data-name="Tray5"] { animation-delay:-3.1s; animation-duration:4.9s; }
+[data-name="TrayParent"] > [data-name="Tray6"] { animation-delay:-3.9s; animation-duration:5.6s; }
+@keyframes unFloat {
+  0%, 100% { translate:0 -6px; }
+  50%      { translate:0  6px; }
+}
+body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) {
+  [data-name="TrayParent"] > .un-btn { animation:none; }
+}
+
 /* ------------------------------------------------------------- reward key
    The final key is the payoff of the whole game, so it earns the biggest
    effect: it turns in 3D, sways, floats and breathes a warm halo.
