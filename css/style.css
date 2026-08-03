@@ -208,29 +208,53 @@ body.un-paused [data-name="TrayParent"] > .un-btn { animation-play-state:paused;
   [data-name="TrayParent"] > .un-btn { animation:none; }
 }
 
-/* Count label shown over a matched tray: "4 Gems". The scene's own reward card
-   says the same thing but is a full tray-sized graphic that buries the items, so
-   this is a compact pill instead -- names the count without covering what was
-   counted. Mounted outside the tray's glow filter. */
+/* Count tag: "4 Gems". The scene's own reward card says the same thing but is a
+   tray-sized graphic that buries the items, so this names the count compactly in
+   the lane opened beneath each row.
+
+   Styled as a little brass cartouche: deep amber rim, lamp-gold face, a lifted
+   highlight along the top and a hard drop so it reads as an object rather than a
+   flat chip. A four-point star sits on each side. Text is near-black brown on
+   gold -- the highest-contrast pairing available in this palette -- and large,
+   because a five-year-old has to read it at arm's length. */
 .un-count {
   position:absolute; pointer-events:none; z-index:7;
   transform:translate(-50%, -50%);
-  padding:9px 22px 7px; border-radius:999px; white-space:nowrap;
+  display:flex; align-items:center; gap:14px;
+  padding:10px 26px 8px; white-space:nowrap;
   font-family:"LilitaOne-Regular", system-ui, sans-serif;
-  font-size:38px; line-height:1; color:#2a1206;
-  background:linear-gradient(180deg, var(--arabCream), var(--arabGold) 62%, var(--arabAmber));
-  box-shadow:0 4px 0 rgba(120,60,10,.35), 0 8px 22px rgba(0,0,0,.35);
-  animation:unCountPop .42s cubic-bezier(.2,1.5,.4,1) both;
+  font-size:52px; line-height:1; letter-spacing:.01em;
+  color:#3b1a05;
+  border-radius:999px;
+  border:5px solid #a85f14;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,0) 42%),
+    linear-gradient(180deg, var(--arabCream) 0%, var(--arabGold) 55%, var(--arabAmber) 100%);
+  box-shadow:
+    inset 0 -4px 0 rgba(150,80,10,.28),
+    0 6px 0 #8a4a0c,
+    0 12px 26px rgba(0,0,0,.45);
+  text-shadow:0 2px 0 rgba(255,255,255,.5);
+  animation:unCountPop .46s cubic-bezier(.2,1.55,.35,1) both;
+}
+/* the two ornamental stars */
+.un-count::before, .un-count::after {
+  content:''; flex:0 0 auto; width:26px; height:26px;
+  background:#8a4a0c;
+  -webkit-mask-image:var(--star); mask-image:var(--star);
+  -webkit-mask-size:100% 100%;    mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;  mask-repeat:no-repeat;
 }
 @keyframes unCountPop {
-  0%   { opacity:0; transform:translate(-50%, -70%) scale(.5); }
-  100% { opacity:1; transform:translate(-50%, -50%) scale(1); }
+  0%   { opacity:0; transform:translate(-50%, -86%) scale(.4) rotate(-6deg); }
+  100% { opacity:1; transform:translate(-50%, -50%) scale(1)  rotate(0deg); }
 }
-.un-count.un-count--out { animation:unCountOut .3s ease-in forwards; }
+.un-count.un-count--out { animation:unCountOut .32s ease-in forwards; }
 @keyframes unCountOut {
-  to { opacity:0; transform:translate(-50%, -26%) scale(.86); }
+  to { opacity:0; transform:translate(-50%, -20%) scale(.85); }
 }
 body.un-paused .un-count { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) { .un-count { animation:none; } }
 
 /* ------------------------------------------------------------- reward key
    The final key is the payoff of the whole game, so it earns the biggest

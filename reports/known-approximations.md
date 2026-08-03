@@ -61,10 +61,9 @@ on the tray itself:
 
 - the tray glows green and gets a burst of star sparks
 - the tray's own number labels count the items off 1..N, and the items stay
-- a compact gold pill below the tray names it in words: "4 Gems", "4 Bottles" --
-  the same copy the scene's card carries, at a size that does not bury anything.
-  It sits **below** the tray because the number labels are anchored high and
-  actually render ~50px above the tray box, so a pill above it hid a digit
+- a brass count tag below the tray names it in words: "✦ 4 Gems ✦" -- the same
+  copy the scene's card carries, at a size a five-year-old can read at arm's
+  length, and small enough to bury nothing
 - the count is spoken ("Great counting!")
 
 Nothing is lost but the card artwork, and the number labels arguably teach the
@@ -75,6 +74,22 @@ wrong: tweening the card to a flat scale of `1` ignores its authored 0.611 and
 renders it 164% oversized, washing the screen yellow; and leaving the tray's
 green glow on underneath tints the card's golden glow so two adjacent cards merge
 into one flat green wash.
+
+### Tray row spacing
+
+The grid was authored with **zero** vertical spacing between its two rows. Each
+tray's number labels are anchored high and render about 50px *above* its cell, so
+the top row's count tag had nowhere to sit -- it landed straight on the bottom
+row's digits.
+
+The grid box is 699px tall and two 265.6px rows need only 531px, so 168px was
+simply unused. 96px of it is now vertical spacing, which opens a clear lane under
+each row for its tag. The grid keeps its middle-centre alignment, so nothing
+shifts off-centre, and the bottom row still clears the Check button. When the
+board drops to a single row for the final question the spacing is irrelevant.
+
+Asserted in the audit: the tag never overlaps a number label, an item, or the
+Check button.
 
 ## Reproduced original quirks
 

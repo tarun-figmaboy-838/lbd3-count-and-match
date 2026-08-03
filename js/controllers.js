@@ -39,6 +39,10 @@ var Game = (function () {
   var READ_BEAT = 0.55;      // held after the line has been spoken
   var VO_CAP = 9;            // never wait longer than this on a clip
 
+  // Vertical gap opened between the two tray rows so each row's count tag has a
+  // clear lane beneath it (see GridLayoutManager for the arithmetic).
+  var TRAY_ROW_GAP = 96;
+
   // ------------------------------------------------------------- ref helpers
   var compHost = Object.create(null);   // component fileID -> GameObject id
   var trHost = Object.create(null);   // transform fileID  -> GameObject id
@@ -1004,6 +1008,17 @@ var Game = (function () {
     rec.grid.constraint = 2;
     rec.grid.runtimeConstraintCount = 2;
     var initialRowCount = 2, targetRowCount = 1, threshold = 2;
+
+    /* The two rows were authored flush -- vertical spacing 0. Each tray's number
+     * labels are anchored high and render ~50px ABOVE its cell, so the top row's
+     * count tag landed directly on the bottom row's digits with nowhere to go.
+     *
+     * The grid box is 699px tall and two 265.6px rows only need 531px, so 168px
+     * was simply unused. Spending 96px of it opens a lane under each row for its
+     * tag and still leaves the bottom row clear of the Check button. Nothing
+     * moves off-centre: the grid keeps its middle-centre alignment.
+     */
+    rec.grid.spacing = [rec.grid.spacing[0], TRAY_ROW_GAP];
     E.layoutGrid(hostId);
     // Update(): row count follows the number of active children
     E.onTick(function () {
